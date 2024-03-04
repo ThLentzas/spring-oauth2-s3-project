@@ -1,4 +1,4 @@
-package com.example.oauth2.auth;
+package com.example.oauth2.auth.oauth2;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;

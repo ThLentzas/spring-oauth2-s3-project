@@ -1,7 +1,8 @@
 package com.example.oauth2;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -9,9 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class HelloController {
 
     @GetMapping("/hello")
-    public String hello(OAuth2AuthenticationToken token, Authentication authentication) {
+    public String hello(Authentication authentication, HttpServletRequest request) {
         System.out.println(authentication);
+        CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
 
-        return "Hello" + token.getName();
+        return csrfToken.getToken();
     }
 }

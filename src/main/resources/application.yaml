@@ -6,9 +6,34 @@ spring:
           github:
             clientId: 2b4b5f412dfb05a1ad7d
             clientSecret: f74d6f5618a89b48546c8cd9d522bee0dd603130
+            scope: user:email
           google:
             clientId: 187667400341-poa0ldtek40tu4vq84n6458msssror7o.apps.googleusercontent.com
             clientSecret: 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
+  datasource:
+    url: jdbc:postgresql://localhost:5432/oauth2_s3
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    baseline-on-migrate: true
+    enabled: true
+    user: postgres
+    password: postgres
+    baseline-description: "init"
+    baseline-version: 0
+    locations: classpath:db/migration
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  docker:
+    compose:
+      lifecycle-management: start_only
 
 logging:
   level:
