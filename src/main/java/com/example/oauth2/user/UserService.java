@@ -1,24 +1,38 @@
 package com.example.oauth2.user;
 
-import com.example.oauth2.entity.AuthUserProvider;
-import com.example.oauth2.entity.User;
-import com.example.oauth2.exception.DuplicateResourceException;
-import lombok.RequiredArgsConstructor;
-import org.passay.*;
+import com.example.oauth2.entity.UserActivationToken;
+import com.example.oauth2.token.UserActivationTokenService;
+import org.passay.CharacterRule;
+import org.passay.EnglishCharacterData;
+import org.passay.LengthRule;
+import org.passay.PasswordData;
+import org.passay.PasswordValidator;
+import org.passay.RuleResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+
+import com.example.oauth2.entity.AuthUserProvider;
+import com.example.oauth2.entity.User;
+import com.example.oauth2.exception.DuplicateResourceException;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final UserActivationTokenService userVerificationTokenService;
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    public void registerEmailAuthUser(User user) {
+    public void registerUsernamePasswordUser(User user) {
         if(this.userRepository.existsByEmail(user.getEmail())) {
             throw new DuplicateResourceException("Email already in use. If you already have an account with Google/Github go through the password reset");
         }
@@ -37,12 +51,6 @@ public class UserService {
         return this.userRepository.save(user);
     }
 
-    public User updateOauth2User(User user, AuthUserProvider authUserProvider) {
-        user.getAuthUserProviders().add(authUserProvider);
-
-        return this.userRepository.save(user);
-    }
-
     public User registerOidcUser(OAuth2User oAuth2User, String email, AuthUserProvider authUserProvider) {
         User user = new User();
         user.setName(oAuth2User.getAttribute("login"));
@@ -54,9 +62,28 @@ public class UserService {
         return this.userRepository.save(user);
     }
 
+    public User updateOauth2User(User user, AuthUserProvider authUserProvider) {
+        user.getAuthUserProviders().add(authUserProvider);
+
+        return this.userRepository.save(user);
+    }
+
+    void verifyUser(String tokenValue) {
+        UserActivationToken token = this.userVerificationTokenService.findByTokenValue(tokenValue);
+        if(token.getExpiryDate().isBefore(Instant.now())) {
+
+        }
+        token.getUser().setEnabled(true);
+        this.userRepository.save(token.getUser());
+    }
+
+    public Optional<User> findByEmail(String email) {
+        return this.userRepository.findByEmail(email);
+    }
+
     public void validateUser(User user) {
         validateEmail(user.getEmail());
-        validateEmail(user.getPassword());
+        validatePassword(user.getPassword());
     }
 
     private void validateEmail(String email) {
@@ -78,9 +105,5 @@ public class UserService {
         if (!result.isValid()) {
             throw new IllegalArgumentException(validator.getMessages(result).get(0));
         }
-    }
-
-    public Optional<User> findByEmail(String email) {
-        return this.userRepository.findByEmail(email);
     }
 }

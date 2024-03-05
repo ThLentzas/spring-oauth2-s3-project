@@ -1,11 +1,21 @@
 package com.example.oauth2.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.Set;
 
 @Entity
@@ -15,10 +25,10 @@ import java.util.Set;
 @Getter
 @Setter
 @EqualsAndHashCode(of = "id")
-public class User {
+public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
     @Column(nullable = false)
     private String email;
     @Column(nullable = false)
@@ -35,6 +45,12 @@ public class User {
     )
     private Set<AuthUserProvider> authUserProviders;
 
+    public User(String name, String email, String password, Set<AuthUserProvider> authUserProviders) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.authUserProviders = authUserProviders;
+    }
 
     public User() {
         enabled = false;

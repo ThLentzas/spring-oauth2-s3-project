@@ -1,6 +1,6 @@
 package com.example.oauth2.config;
 
-import com.example.oauth2.auth.email.EmailAuthUser;
+import com.example.oauth2.auth.usernamepassword.UsernamePasswordUser;
 import com.example.oauth2.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +23,7 @@ public class AuthConfig {
     @Bean
     public UserDetailsService userDetailsService () {
         return username -> userRepository.findByEmail(username)
-                .map(EmailAuthUser::new)
+                .map(UsernamePasswordUser::new)
                 .orElseThrow(() -> new UsernameNotFoundException("Username or password is incorrect"));
     }
 }

@@ -1,25 +1,19 @@
 package com.example.oauth2.config;
 
-import com.example.oauth2.entity.AuthUserProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity(debug = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
     /*
@@ -30,6 +24,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> {
+                    authorize.requestMatchers(HttpMethod.GET, "/register").permitAll();
+                    authorize.requestMatchers(HttpMethod.GET, "/api/v1/user/verify/**").permitAll();
                     authorize.requestMatchers("/api/v1/auth/**").permitAll();
                     authorize.anyRequest().authenticated();
                 })
@@ -39,7 +35,7 @@ public class SecurityConfig {
                 })
                 //Explain with defaults()
                 .formLogin(withDefaults())
-                //it uses Open ID Connect under the hood for Google and just oauth2 for GitHub
+                //it uses Open ID Connect under the hood for Google and oauth2 for GitHub
                 .oauth2Login(withDefaults());
         return http.build();
     }

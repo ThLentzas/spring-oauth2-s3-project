@@ -1,4 +1,4 @@
-package com.example.oauth2.auth.email;
+package com.example.oauth2.auth.usernamepassword;
 
 import com.example.oauth2.entity.User;
 import org.springframework.security.core.GrantedAuthority;
@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public record EmailAuthUser(User user) implements UserDetails {
+public record UsernamePasswordUser(User user) implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

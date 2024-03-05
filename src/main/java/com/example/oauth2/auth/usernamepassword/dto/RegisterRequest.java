@@ -1,4 +1,4 @@
-package com.example.oauth2.auth.email.dto;
+package com.example.oauth2.auth.usernamepassword.dto;
 
 import lombok.Getter;
 import lombok.Setter;

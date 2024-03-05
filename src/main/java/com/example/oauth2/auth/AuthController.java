@@ -1,27 +1,29 @@
 package com.example.oauth2.auth;
 
-import com.example.oauth2.auth.email.dto.RegisterRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.example.oauth2.auth.usernamepassword.UsernamePasswordService;
+import com.example.oauth2.auth.usernamepassword.dto.RegisterRequest;
+
+import jakarta.servlet.http.HttpSession;
+
+import lombok.RequiredArgsConstructor;
+
 @Controller
 @RequestMapping("/api/v1/auth")
+@RequiredArgsConstructor
 public class AuthController {
-
-    @GetMapping("/register")
-    public String registrationForm(Model model) {
-        model.addAttribute("registerRequest", new RegisterRequest());
-
-        return "register";
-    }
+    private final UsernamePasswordService usernamePasswordService;
 
     @PostMapping("/register")
-    public String registerUser(@ModelAttribute RegisterRequest request) {
+    public ResponseEntity<Void> registerUser(@ModelAttribute RegisterRequest request) {
+        this.usernamePasswordService.registerUser(request);
 
-        return "redirect:/xd";
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 }

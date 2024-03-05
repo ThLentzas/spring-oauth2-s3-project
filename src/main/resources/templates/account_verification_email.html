@@ -1,0 +1,35 @@
+<!-- Emails do not support external CSS sheets and we must use inline styles -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account activation</title>
+</head>
+<body style="background-color: #ffffff; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; margin: 0; padding: 0;">
+<div style="margin: auto; width: 100%; max-width: 520px; text-align: start; padding-top: 20px;">
+    <h1 style="font-size: 24px; font-weight: 500; padding: 15px 0; margin: 0;">Activate your account</h1>
+
+    <div style="border: 1px solid #ccc; border-radius: 10px;">
+        <div style="text-align: center; background-color: #ffffff; padding: 15px 0; border-top-left-radius: 9px; border-top-right-radius: 9px;">
+            <h2 style="font-size: 20px; font-weight: normal; margin: 0; color: #24292e">Test account activation</h2>
+        </div>
+
+        <div style="padding: 20px; text-align: start;">
+            <p style="font-size: 14px; line-height: 1.6; margin-top: 20px; margin-bottom: 20px;">Hello <span th:text="${username}"></span>,</p>
+
+            <p style="font-size: 14px; line-height: 1.6; margin-top: 20px; margin-bottom: 20px;">Simply click the button below to activate your account. If you don’t use this link within 24 hours, it will expire.</p>
+            <div style="text-align: center;">
+                <a th:href="${activationLink}" style="padding: 12px 20px; background-color: #1a82e2; color: #fff; border-radius: 5px; text-decoration: none; font-size: 14px;">Activate</a>
+            </div>
+        </div>
+
+        <div style="text-align: start; background-color: #ffffff; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px;">
+            <p style="font-size: 14px; line-height: 1.6; margin: 20px 0; padding: 0 20px;">Thanks, <br> The Test Team</p>
+        </div>
+
+    </div>
+
+</div>
+</body>
+</html>
