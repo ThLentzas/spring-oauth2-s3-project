@@ -1,27 +1,25 @@
 package com.example.oauth2.user;
 
-import com.example.oauth2.entity.UserActivationToken;
-import com.example.oauth2.token.UserActivationTokenService;
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
 import org.passay.LengthRule;
 import org.passay.PasswordData;
 import org.passay.PasswordValidator;
 import org.passay.RuleResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
+import com.example.oauth2.entity.UserActivationToken;
+import com.example.oauth2.token.UserActivationTokenService;
 import com.example.oauth2.entity.AuthUserProvider;
 import com.example.oauth2.entity.User;
 import com.example.oauth2.exception.DuplicateResourceException;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,9 +28,11 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
     private final UserRepository userRepository;
     private final UserActivationTokenService userVerificationTokenService;
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    private final PasswordEncoder passwordEncoder;
 
     public void registerUsernamePasswordUser(User user) {
+        validateUser(user);
+        user.setPassword(this.passwordEncoder.encode(user.getPassword()));
         if(this.userRepository.existsByEmail(user.getEmail())) {
             throw new DuplicateResourceException("Email already in use. If you already have an account with Google/Github go through the password reset");
         }
@@ -45,7 +45,7 @@ public class UserService {
         user.setName(oidcUser.getAttribute("name"));
         user.setEmail(oidcUser.getEmail());
         user.setPassword(UUID.randomUUID().toString());
-        user.setEnabled(true);
+        user.setActivated(true);
         user.setAuthUserProviders(Set.of(authUserProvider));
 
         return this.userRepository.save(user);
@@ -56,7 +56,7 @@ public class UserService {
         user.setName(oAuth2User.getAttribute("login"));
         user.setEmail(email);
         user.setPassword(UUID.randomUUID().toString());
-        user.setEnabled(true);
+        user.setActivated(true);
         user.setAuthUserProviders(Set.of(authUserProvider));
 
         return this.userRepository.save(user);
@@ -68,13 +68,17 @@ public class UserService {
         return this.userRepository.save(user);
     }
 
-    void verifyUser(String tokenValue) {
-        UserActivationToken token = this.userVerificationTokenService.findByTokenValue(tokenValue);
-        if(token.getExpiryDate().isBefore(Instant.now())) {
-
+    boolean activateUserAccount(String tokenValue) {
+        Optional<UserActivationToken> tokenOptional = this.userVerificationTokenService.verifyToken(tokenValue);
+        if(tokenOptional.isEmpty()) {
+            return false;
         }
-        token.getUser().setEnabled(true);
+
+        UserActivationToken token = tokenOptional.get();
+        token.getUser().setActivated(true);
         this.userRepository.save(token.getUser());
+
+        return true;
     }
 
     public Optional<User> findByEmail(String email) {

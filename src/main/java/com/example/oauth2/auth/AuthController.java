@@ -21,8 +21,8 @@ public class AuthController {
     private final UsernamePasswordService usernamePasswordService;
 
     @PostMapping("/register")
-    public ResponseEntity<Void> registerUser(@ModelAttribute RegisterRequest request) {
-        this.usernamePasswordService.registerUser(request);
+    public ResponseEntity<Void> registerUser(@ModelAttribute RegisterRequest request, HttpSession session) {
+        this.usernamePasswordService.registerUser(request, session);
 
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }

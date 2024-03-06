@@ -19,7 +19,7 @@ public class EmailService {
     private String sender;
 
     @Async
-    public void sendAccountVerificationEmail(String recipient, String username, String token) {
+    public void sendAccountActivationEmail(String recipient, String username, String token) {
         String activationLink = String.format("http://localhost:8080/api/v1/user/verify?token=%s", token);
         String context = this.thymeleafService.setAccountVerificationEmailContext(activationLink, username);
 

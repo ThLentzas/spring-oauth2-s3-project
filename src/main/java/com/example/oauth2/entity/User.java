@@ -36,7 +36,7 @@ public class User implements Serializable {
     @Column(nullable = false)
     private String password;
     @Column(nullable = false)
-    private boolean enabled;
+    private boolean activated;
     @ManyToMany
     @JoinTable(
             name = "users_providers",
@@ -53,6 +53,6 @@ public class User implements Serializable {
     }
 
     public User() {
-        enabled = false;
+        activated = false;
     }
 }

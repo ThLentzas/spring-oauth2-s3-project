@@ -16,6 +16,6 @@ public class ThymeleafService {
         context.setVariable("activationLink", activationLink);
         context.setVariable("username", username);
 
-        return this.templateEngine.process("account_verification_email", context);
+        return this.templateEngine.process("account_activation_email", context);
     }
 }
