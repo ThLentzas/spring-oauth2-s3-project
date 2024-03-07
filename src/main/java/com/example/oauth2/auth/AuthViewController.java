@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import com.example.oauth2.auth.usernamepassword.dto.RegisterRequest;
 
 @Controller
-public class AuthViewController {
+class AuthViewController {
 
     @GetMapping("/register")
-    public String registrationForm(Model model) {
+    String registrationForm(Model model) {
         model.addAttribute("registerRequest", new RegisterRequest());
 
         return "register";

@@ -8,11 +8,11 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class ThymeleafService {
+class ThymeleafService {
     private final TemplateEngine templateEngine;
 
     String setAccountVerificationEmailContext(String activationLink, String username) {
-        Context context = new Context();
+        var context = new Context();
         context.setVariable("activationLink", activationLink);
         context.setVariable("username", username);
 

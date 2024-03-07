@@ -1,5 +1,7 @@
 package com.example.oauth2.user;
 
+import com.example.oauth2.auth.usernamepassword.UsernamePasswordUser;
+import com.example.oauth2.email.EmailService;
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
 import org.passay.LengthRule;
@@ -29,35 +31,39 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserActivationTokenService userVerificationTokenService;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     public void registerUsernamePasswordUser(User user) {
         validateUser(user);
-        user.setPassword(this.passwordEncoder.encode(user.getPassword()));
-        if(this.userRepository.existsByEmail(user.getEmail())) {
+        if (this.userRepository.existsByEmail(user.getEmail())) {
             throw new DuplicateResourceException("Email already in use. If you already have an account with Google/Github go through the password reset");
         }
 
+        user.setPassword(this.passwordEncoder.encode(user.getPassword()));
+        user.setRole(Role.USER);
         this.userRepository.save(user);
     }
 
     public User registerOauth2User(OidcUser oidcUser, AuthUserProvider authUserProvider) {
-        User user = new User();
+        var user = new User();
         user.setName(oidcUser.getAttribute("name"));
         user.setEmail(oidcUser.getEmail());
         user.setPassword(UUID.randomUUID().toString());
-        user.setActivated(true);
+        user.setEnabled(true);
         user.setAuthUserProviders(Set.of(authUserProvider));
+        user.setRole(Role.VERIFIED);
 
         return this.userRepository.save(user);
     }
 
     public User registerOidcUser(OAuth2User oAuth2User, String email, AuthUserProvider authUserProvider) {
-        User user = new User();
+        var user = new User();
         user.setName(oAuth2User.getAttribute("login"));
         user.setEmail(email);
         user.setPassword(UUID.randomUUID().toString());
-        user.setActivated(true);
+        user.setEnabled(true);
         user.setAuthUserProviders(Set.of(authUserProvider));
+        user.setRole(Role.VERIFIED);
 
         return this.userRepository.save(user);
     }
@@ -68,14 +74,21 @@ public class UserService {
         return this.userRepository.save(user);
     }
 
-    boolean activateUserAccount(String tokenValue) {
-        Optional<UserActivationToken> tokenOptional = this.userVerificationTokenService.verifyToken(tokenValue);
-        if(tokenOptional.isEmpty()) {
+    public void activateUserAccount(UsernamePasswordUser usernamePasswordUser) {
+        var user = this.userRepository.findById(usernamePasswordUser.user().getId()).orElseThrow();
+        var token = this.userVerificationTokenService.createAccountActivationToken(user);
+        this.emailService.sendAccountActivationEmail(user.getEmail(), user.getName(), token.getTokenValue());
+    }
+
+    boolean verifyUser(String tokenValue) {
+        var tokenOptional = this.userVerificationTokenService.verifyToken(tokenValue);
+        if (tokenOptional.isEmpty()) {
             return false;
         }
 
-        UserActivationToken token = tokenOptional.get();
-        token.getUser().setActivated(true);
+        var token = tokenOptional.get();
+        token.getUser().setEnabled(true);
+        token.getUser().setRole(Role.VERIFIED);
         this.userRepository.save(token.getUser());
 
         return true;
@@ -97,7 +110,7 @@ public class UserService {
     }
 
     private void validatePassword(String password) {
-        PasswordValidator validator = new PasswordValidator(
+        var validator = new PasswordValidator(
                 new LengthRule(12, 128),
                 new CharacterRule(EnglishCharacterData.UpperCase, 1),
                 new CharacterRule(EnglishCharacterData.LowerCase, 1),

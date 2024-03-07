@@ -8,16 +8,16 @@ import org.springframework.web.client.RestClient;
 import java.util.List;
 
 @Service
-public class GitHubService {
+class GitHubService {
     private final RestClient restClient;
 
-    public GitHubService() {
+    GitHubService() {
         this.restClient = RestClient.builder()
                 .baseUrl("https://api.github.com")
                 .build();
     }
 
-    public GithubEmail getGitHubEmail(String accessToken) {
+    GithubEmail getGitHubEmail(String accessToken) {
         List<GithubEmail> emails =  this.restClient.get()
                 .uri("/user/emails")
                 .header("Authorization", "Bearer " + accessToken)

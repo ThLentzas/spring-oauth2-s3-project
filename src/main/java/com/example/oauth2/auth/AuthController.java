@@ -17,11 +17,11 @@ import lombok.RequiredArgsConstructor;
 @Controller
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-public class AuthController {
+class AuthController {
     private final UsernamePasswordService usernamePasswordService;
 
     @PostMapping("/register")
-    public ResponseEntity<Void> registerUser(@ModelAttribute RegisterRequest request, HttpSession session) {
+    ResponseEntity<Void> registerUser(@ModelAttribute RegisterRequest request, HttpSession session) {
         this.usernamePasswordService.registerUser(request, session);
 
         return new ResponseEntity<>(HttpStatus.ACCEPTED);

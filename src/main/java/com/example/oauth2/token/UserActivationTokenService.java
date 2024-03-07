@@ -19,9 +19,9 @@ public class UserActivationTokenService {
     private static final Logger logger = LoggerFactory.getLogger(UserActivationTokenService.class);
 
     public UserActivationToken createAccountActivationToken(User user) {
-        String token = TokenUtils.generateToken();
-        Instant expiryTime = Instant.now().plus(1, ChronoUnit.DAYS);
-        UserActivationToken userActivationToken = new UserActivationToken(user, token, expiryTime);
+        var token = TokenUtils.generateToken();
+        var expiryTime = Instant.now().plus(1, ChronoUnit.DAYS);
+        var userActivationToken = new UserActivationToken(user, token, expiryTime);
 
         return this.userActivationTokenRepository.save(userActivationToken);
     }

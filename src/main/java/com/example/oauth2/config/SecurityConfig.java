@@ -15,7 +15,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 @EnableWebSecurity(debug = true)
 @RequiredArgsConstructor
-public class SecurityConfig {
+class SecurityConfig {
     /*
         If we had both formLogin(), httpBasic() and oauth2Login() and a request comes in with username/password and
         username:password in the Authorization header, there is priority based on how we declare things. So 1st we

@@ -9,7 +9,7 @@ import java.util.concurrent.Executor;
 
 @Configuration
 @EnableAsync
-public class AsyncConfig {
+class AsyncConfig {
 
     @Bean
     public Executor taskExecutor() {

@@ -15,6 +15,11 @@ import com.example.oauth2.authprovider.AuthProvider;
 
 import java.io.Serializable;
 
+/*
+    The reason why both AuthUserProvider and User Entities have to implement Serializable is because they are part of
+    the authentication object of the Security Context that is stored in Redis as the value of the
+    SPRING_SECURITY_CONTEXT KEY
+ */
 @Entity
 @Table(name = "providers")
 @Getter

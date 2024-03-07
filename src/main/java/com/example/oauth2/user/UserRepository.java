@@ -9,7 +9,11 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface UserRepository extends JpaRepository<User, UUID> {
+public interface UserRepository extends JpaRepository<User, Long> {
+    /*
+        The query means if the user is found with a given email always fetch its auth providers. A user always has at
+        least 1 provider.
+     */
     @Query("""
                 SELECT u
                 FROM User u

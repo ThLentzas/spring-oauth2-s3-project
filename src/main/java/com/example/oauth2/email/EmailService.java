@@ -2,7 +2,6 @@ package com.example.oauth2.email;
 
 import com.example.oauth2.exception.ServerErrorException;
 import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -20,14 +19,14 @@ public class EmailService {
 
     @Async
     public void sendAccountActivationEmail(String recipient, String username, String token) {
-        String activationLink = String.format("http://localhost:8080/api/v1/user/verify?token=%s", token);
-        String context = this.thymeleafService.setAccountVerificationEmailContext(activationLink, username);
+        var activationLink = String.format("http://localhost:8080/api/v1/user/verify?token=%s", token);
+        var context = this.thymeleafService.setAccountVerificationEmailContext(activationLink, username);
 
         sendEmail(recipient, "Activate your account", context);
     }
 
     private void sendEmail(String recipient, String subject, String emailContext) {
-        MimeMessage mimeMessage = this.mailSender.createMimeMessage();
+        var mimeMessage = this.mailSender.createMimeMessage();
         MimeMessageHelper helper;
 
         try {

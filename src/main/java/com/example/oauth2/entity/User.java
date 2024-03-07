@@ -1,5 +1,6 @@
 package com.example.oauth2.entity;
 
+import com.example.oauth2.user.Role;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,10 +15,17 @@ import jakarta.persistence.UniqueConstraint;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.io.Serializable;
 import java.util.Set;
 
+/*
+    The reason why both AuthUserProvider and User Entities have to implement Serializable is because they are part of
+    the authentication object of the Security Context that is stored in Redis as the value of the
+    SPRING_SECURITY_CONTEXT KEY
+ */
 @Entity
 @Table(name = "users", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"email"}, name = "unique_users_email")
@@ -36,7 +44,10 @@ public class User implements Serializable {
     @Column(nullable = false)
     private String password;
     @Column(nullable = false)
-    private boolean activated;
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    private Role role;
+    @Column(nullable = false)
+    private boolean enabled;
     @ManyToMany
     @JoinTable(
             name = "users_providers",
@@ -53,6 +64,6 @@ public class User implements Serializable {
     }
 
     public User() {
-        activated = false;
+        enabled = false;
     }
 }

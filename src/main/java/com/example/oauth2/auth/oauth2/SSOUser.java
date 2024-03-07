@@ -12,7 +12,7 @@ import java.util.Map;
 
 import com.example.oauth2.entity.User;
 
-public record SSOUser(User user) implements OidcUser {
+record SSOUser(User user) implements OidcUser {
 
     @Override
     public Map<String, Object> getClaims() {
@@ -36,7 +36,7 @@ public record SSOUser(User user) implements OidcUser {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return AuthorityUtils.NO_AUTHORITIES;
+        return AuthorityUtils.createAuthorityList(user.getRole().toString());
     }
 
     @Override

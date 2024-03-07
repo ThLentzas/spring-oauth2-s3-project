@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface AuthUserProviderRepository extends JpaRepository<AuthUserProvider, Long> {
+interface AuthUserProviderRepository extends JpaRepository<AuthUserProvider, Long> {
     @Query("""
                 SELECT aup
                 FROM AuthUserProvider aup
