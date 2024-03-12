@@ -1,8 +1,8 @@
 package com.example.oauth2.auth.usernamepassword;
 
 import com.example.oauth2.auth.usernamepassword.dto.RegisterRequest;
-import com.example.oauth2.authprovider.AuthProvider;
-import com.example.oauth2.authprovider.AuthUserProviderService;
+import com.example.oauth2.authprovider.AuthProviderType;
+import com.example.oauth2.authprovider.AuthProviderService;
 import com.example.oauth2.entity.User;
 import com.example.oauth2.user.UserService;
 import com.example.oauth2.email.EmailService;
@@ -17,13 +17,13 @@ import jakarta.servlet.http.HttpSession;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.Set;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class UsernamePasswordService {
     private final UserService userService;
-    private final AuthUserProviderService authUserProviderService;
+    private final AuthProviderService authProviderService;
     private final UserActivationTokenService userVerificationTokenService;
     private final EmailService emailService;
 
@@ -34,26 +34,33 @@ public class UsernamePasswordService {
         for subsequent requests for the user to be authenticated is not enough, the account has to be activated.
      */
     public void registerUser(RegisterRequest registerRequest, HttpSession session) {
-        var authUserProvider = this.authUserProviderService.findByAuthProvider(AuthProvider.EMAIL);
-        var user = new User(registerRequest.getName(),
-                registerRequest.getEmail(),
-                registerRequest.getPassword(),
-                Set.of(authUserProvider)
-        );
+        var authProvider = this.authProviderService.findByAuthProviderType(AuthProviderType.EMAIL);
+        var user = User.builder()
+                .name(registerRequest.getName())
+                .email(registerRequest.getEmail())
+                .password(registerRequest.getPassword())
+                .build();
 
-        this.userService.registerUsernamePasswordUser(user);
-        var token = this.userVerificationTokenService.createAccountActivationToken(user);
-        this.emailService.sendAccountActivationEmail(user.getEmail(), user.getName(), token.getTokenValue());
+        user = this.userService.registerUsernamePasswordUser(user, authProvider);
+        if(!user.isEnabled()) {
+            var token = this.userVerificationTokenService.createAccountActivationToken(user);
+            this.emailService.sendAccountActivationEmail(user.getEmail(), user.getName(), token.getTokenValue());
+        }
 
         setupSessionSpringSecurityContext(user, session);
     }
 
+    /*
+        For the form login, the Authentication object is of type UsernamePasswordAuthenticationToken, and for OAuth2,
+        it is of OAuth2AuthenticationToken
+     */
     private void setupSessionSpringSecurityContext(User user, HttpSession session) {
         var usernamePasswordUser = new UsernamePasswordUser(user);
         var authentication = new UsernamePasswordAuthenticationToken(
                 usernamePasswordUser,
                 null,
-                usernamePasswordUser.getAuthorities());
+                usernamePasswordUser.getAuthorities()
+        );
 
         var context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authentication);

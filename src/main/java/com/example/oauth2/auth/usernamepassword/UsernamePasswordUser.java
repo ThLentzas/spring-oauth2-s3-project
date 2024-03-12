@@ -7,6 +7,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
+/*
+    The reason why UsernamePasswordUser DOES NOT HAVE to implement Serializable, despite the fact that its part of
+    the Authentication object of the Security Context that is stored in Redis as the value of
+    the SPRING_SECURITY_CONTEXT KEY, is because UserDetails DOES. The Authentication object itself implements
+    Serializable as well
+ */
 public record UsernamePasswordUser(User user) implements UserDetails {
 
     @Override

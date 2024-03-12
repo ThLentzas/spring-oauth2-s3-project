@@ -1,30 +1,32 @@
 package com.example.oauth2.entity;
 
-import com.example.oauth2.user.Role;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Set;
 
+import com.example.oauth2.user.Role;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 /*
-    The reason why both AuthUserProvider and User Entities have to implement Serializable is because they are part of
-    the authentication object of the Security Context that is stored in Redis as the value of the
-    SPRING_SECURITY_CONTEXT KEY
+    The reason why User has to implement Serializable is, because its part of the UsernamePasswordUser that implements
+    UserDetails, and it is the principal of the authentication object of the Security Context that is stored in Redis
+    as the value of the SPRING_SECURITY_CONTEXT KEY. The Authentication object itself implements Serializable as well
  */
 @Entity
 @Table(name = "users", uniqueConstraints = {
@@ -33,6 +35,9 @@ import java.util.Set;
 @Getter
 @Setter
 @EqualsAndHashCode(of = "id")
+@EntityListeners(AuditingEntityListener.class)
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,20 +53,14 @@ public class User implements Serializable {
     private Role role;
     @Column(nullable = false)
     private boolean enabled;
-    @ManyToMany
-    @JoinTable(
-            name = "users_providers",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "provider_id")
-    )
-    private Set<AuthUserProvider> authUserProviders;
-
-    public User(String name, String email, String password, Set<AuthUserProvider> authUserProviders) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.authUserProviders = authUserProviders;
-    }
+    @Column(nullable = false)
+    @CreatedDate
+    private Instant createdAt;
+    private Instant verifiedAt;
+    @Column(nullable = false)
+    private Instant lastSignedInAt;
+    @OneToMany(mappedBy = "user")
+    private Set<UserAuthProvider> userAuthProviders;
 
     public User() {
         enabled = false;

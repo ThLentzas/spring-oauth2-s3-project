@@ -6,13 +6,19 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
 import com.example.oauth2.entity.User;
 
-record SSOUser(User user) implements OidcUser {
+/*
+    The reason why SSOUser has to implement Serializable is, because its part of the Authentication object(Principal) of
+    the Security Context that is stored in Redis as the value of the SPRING_SECURITY_CONTEXT KEY. The Authentication
+    object itself implements Serializable as well
+ */
+record SSOUser(User user) implements OidcUser, Serializable {
 
     @Override
     public Map<String, Object> getClaims() {

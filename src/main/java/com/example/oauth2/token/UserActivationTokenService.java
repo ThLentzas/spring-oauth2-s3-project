@@ -18,6 +18,11 @@ public class UserActivationTokenService {
     private final UserActivationTokenRepository userActivationTokenRepository;
     private static final Logger logger = LoggerFactory.getLogger(UserActivationTokenService.class);
 
+    /*
+        In the case where the user first logged in with some oauth2 provider and then creates a username/password
+        account under the same email, that user is already verified, but we will still send the activation email to make
+        sure that they actually have access to that email
+     */
     public UserActivationToken createAccountActivationToken(User user) {
         var token = TokenUtils.generateToken();
         var expiryTime = Instant.now().plus(1, ChronoUnit.DAYS);
@@ -40,14 +45,14 @@ public class UserActivationTokenService {
             return Optional.empty();
         }
 
-        Optional<UserActivationToken> tokenOptional = this.userActivationTokenRepository.findByTokenValue(tokenValue);
+        var tokenOptional = this.userActivationTokenRepository.findByTokenValue(tokenValue);
         if(tokenOptional.isEmpty()) {
             logger.info("User activation token not found for token value: {}", tokenValue);
 
             return tokenOptional;
         }
 
-        UserActivationToken userActivationToken = tokenOptional.get();
+        var userActivationToken = tokenOptional.get();
         if(userActivationToken.getExpiryDate().isBefore(Instant.now())) {
             logger.info("User activation link expired for user with id: {}", userActivationToken.getUser().getId());
             this.userActivationTokenRepository.delete(userActivationToken);
@@ -56,5 +61,9 @@ public class UserActivationTokenService {
         }
 
         return tokenOptional;
+    }
+
+    public void deleteAllTokens(User user) {
+        this.userActivationTokenRepository.deleteAllTokensByUser(user);
     }
 }

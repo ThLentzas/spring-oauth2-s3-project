@@ -1,5 +1,6 @@
 package com.example.oauth2.user;
 
+import com.example.oauth2.entity.AuthProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.oauth2.entity.User;
@@ -7,7 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
-import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     /*
@@ -17,7 +17,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("""
                 SELECT u
                 FROM User u
-                JOIN FETCH u.authUserProviders
+                JOIN FETCH u.userAuthProviders uap
+                JOIN FETCH uap.authProvider
                 WHERE u.email = :email
             """)
     Optional<User> findByEmail(@Param("email") String email);
@@ -25,7 +26,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("""
                 SELECT COUNT(u) > 0
                 FROM User u
-                WHERE u.email = :email
+                JOIN u.userAuthProviders uap
+                JOIN uap.authProvider
+                WHERE uap.email = :email AND uap.authProvider = :authProvider
             """)
-    boolean existsByEmail(@Param("email") String email);
+    boolean existsByEmail(@Param("email") String email, @Param("authProvider")AuthProvider authProvider);
 }
