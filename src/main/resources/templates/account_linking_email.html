@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Linking</title>
+</head>
+<body style="background-color: #ffffff; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; margin: 0; padding: 0;">
+<div style="margin: auto; width: 100%; max-width: 520px; text-align: start; padding-top: 20px;">
+    <h1 style="font-size: 24px; font-weight: 500; padding: 15px 0; margin: 0;">Account Linking</h1>
+
+    <div style="border: 1px solid #ccc; border-radius: 10px;">
+        <div style="text-align: center; background-color: #ffffff; padding: 15px 0; border-top-left-radius: 9px; border-top-right-radius: 9px;">
+            <h2 style="font-size: 20px; font-weight: normal; margin: 0; color: #24292e">Existing Account Detected</h2>
+        </div>
+
+        <div style="padding: 20px; text-align: start;">
+            <p style="font-size: 14px; line-height: 1.6; margin-top: 20px;">Hello <span th:text="${username}"></span>,</p>
+
+            <p style="font-size: 14px; line-height: 1.6; margin-bottom: 20px;">We noticed an attempt
+                to register a new account using this email address, but an account already exists because you've
+                previously signed up using a social login option. To set up a password for your account, please click
+                the link below to</p>
+
+            <div style="text-align: center; margin-bottom: 20px; margin-top: 20px;">
+                <a th:href="${tokenLink}"
+                   style="padding: 12px 20px; background-color: #1a82e2; color: #fff; border-radius: 5px; text-decoration: none; font-size: 14px;">Reset
+                    Password</a>
+            </div>
+
+            <p style="font-size: 14px; line-height: 1.6; margin-top: 30px; margin-bottom: 20px;">If you don’t use this
+                link within 3 hours, it will expire. To get a new password reset link, visit <a
+                        th:href="${passwordResetLink}" th:text="${passwordResetLink}"
+                        style="color: #0366d6; text-decoration: none;"></a></p>
+        </div>
+
+
+        <div style="text-align: start; background-color: #ffffff; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px;">
+            <p style="font-size: 14px; line-height: 1.6; padding: 0 20px;">Thanks, <br> The Test Team</p>
+        </div>
+
+    </div>
+
+</div>
+</body>
+</html>

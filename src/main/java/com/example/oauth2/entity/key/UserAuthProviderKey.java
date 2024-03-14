@@ -10,16 +10,16 @@ import java.io.Serializable;
 @Embeddable
 @Getter
 @Setter
-@EqualsAndHashCode(of = {"userId", "providerId"})
+@EqualsAndHashCode(of = {"userId", "authProviderId"})
 public class UserAuthProviderKey implements Serializable {
     private Long userId;
-    private Long providerId;
+    private Long authProviderId;
 
     public UserAuthProviderKey() {
     }
 
-    public UserAuthProviderKey(Long userId, Long providerId) {
+    public UserAuthProviderKey(Long userId, Long authProviderId) {
         this.userId = userId;
-        this.providerId = providerId;
+        this.authProviderId = authProviderId;
     }
 }

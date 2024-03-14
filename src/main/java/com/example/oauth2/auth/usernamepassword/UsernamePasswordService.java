@@ -4,6 +4,8 @@ import com.example.oauth2.auth.usernamepassword.dto.RegisterRequest;
 import com.example.oauth2.authprovider.AuthProviderType;
 import com.example.oauth2.authprovider.AuthProviderService;
 import com.example.oauth2.entity.User;
+import com.example.oauth2.token.PasswordResetTokenService;
+import com.example.oauth2.token.dto.PasswordResetRequest;
 import com.example.oauth2.user.UserService;
 import com.example.oauth2.email.EmailService;
 import com.example.oauth2.token.UserActivationTokenService;
@@ -17,14 +19,13 @@ import jakarta.servlet.http.HttpSession;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class UsernamePasswordService {
     private final UserService userService;
     private final AuthProviderService authProviderService;
     private final UserActivationTokenService userVerificationTokenService;
+    private final PasswordResetTokenService passwordResetTokenService;
     private final EmailService emailService;
 
     /*
@@ -45,6 +46,8 @@ public class UsernamePasswordService {
         if(!user.isEnabled()) {
             var token = this.userVerificationTokenService.createAccountActivationToken(user);
             this.emailService.sendAccountActivationEmail(user.getEmail(), user.getName(), token.getTokenValue());
+        } else {
+            this.passwordResetTokenService.createPasswordResetToken(new PasswordResetRequest(user.getEmail()), true);
         }
 
         setupSessionSpringSecurityContext(user, session);

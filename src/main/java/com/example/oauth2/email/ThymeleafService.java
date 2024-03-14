@@ -18,4 +18,21 @@ class ThymeleafService {
 
         return this.templateEngine.process("account_activation_email", context);
     }
+
+    String setAccountRegistrationLinkingEmailContext(String username, String tokenLink, String passwordResetLink) {
+        var context = new Context();
+        context.setVariable("username", username);
+        context.setVariable("tokenLink", tokenLink);
+        context.setVariable("passwordResetLink", passwordResetLink);
+
+        return this.templateEngine.process("account_linking_email", context);
+    }
+
+    String setPasswordResetEmailContext(String tokenLink, String passwordResetLink) {
+        var context = new Context();
+        context.setVariable("tokenLink", tokenLink);
+        context.setVariable("passwordResetLink", passwordResetLink);
+
+        return templateEngine.process("password_reset_email", context);
+    }
 }

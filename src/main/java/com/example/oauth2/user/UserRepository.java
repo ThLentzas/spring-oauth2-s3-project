@@ -28,7 +28,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
                 FROM User u
                 JOIN u.userAuthProviders uap
                 JOIN uap.authProvider
-                WHERE uap.email = :email AND uap.authProvider = :authProvider
+                WHERE uap.authProviderEmail = :email AND uap.authProvider = :authProvider
             """)
     boolean existsByEmail(@Param("email") String email, @Param("authProvider")AuthProvider authProvider);
 }

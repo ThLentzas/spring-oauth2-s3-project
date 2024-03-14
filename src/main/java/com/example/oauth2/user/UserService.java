@@ -17,9 +17,12 @@ import org.passay.PasswordData;
 import org.passay.PasswordValidator;
 import org.passay.RuleResult;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -31,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
     private final UserRepository userRepository;
     private final UserAuthProviderRepository userAuthProviderRepository;
-    private final UserActivationTokenService userVerificationTokenService;
+    private final UserActivationTokenService userActivationTokenService;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
@@ -53,7 +56,7 @@ public class UserService {
             user.setPassword(this.passwordEncoder.encode(user.getPassword()));
             user.setRole(Role.USER);
             user.setLastSignedInAt(Instant.now());
-            persistUserAuthDetails(user, authProvider);
+            persistUserAuthDetails(user, null, authProvider);
 
             return user;
         }
@@ -66,7 +69,12 @@ public class UserService {
             throw new DuplicateResourceException("Email already in use.");
         }
 
-        var userAuthProvider = createUserAuthProvider(user, user.getEmail(), user.getName(), authProvider);
+        var userAuthProvider = createUserAuthProvider(user,
+                user.getEmail(),
+                user.getName(),
+                String.valueOf(user.getId()),
+                authProvider
+        );
         this.userAuthProviderRepository.save(userAuthProvider);
         user.getUserAuthProviders().add(userAuthProvider);
         user.setLastSignedInAt(Instant.now());
@@ -74,7 +82,7 @@ public class UserService {
         return this.userRepository.save(user);
     }
 
-    public User registerOauth2User(String name, String email, AuthProvider authProvider) {
+    public User registerOauth2User(String name, String email, String authProviderUserId, AuthProvider authProvider) {
         var user = User.builder()
                 .name(name)
                 .email(email)
@@ -84,20 +92,36 @@ public class UserService {
                 .verifiedAt(Instant.now())
                 .lastSignedInAt(Instant.now())
                 .build();
-        persistUserAuthDetails(user, authProvider);
+        persistUserAuthDetails(user, authProviderUserId, authProvider);
 
         return user;
     }
 
-    public User updateOauth2User(User user, String name, AuthProvider authProvider) {
+    /*
+        The reason we are not updating the auth provider's user id when the provider already exists for the user, and
+        we only keep track of the latest name they have with that provider is because the id never changes
+     */
+    public User updateOauth2User(User user, OAuth2User oAuth2User, AuthProvider authProvider) {
         var userAuthProviderOptional = user.getUserAuthProviders().stream()
                 .filter(tmp -> tmp.getAuthProvider().getAuthProviderType().equals(authProvider.getAuthProviderType()))
                 .findFirst();
 
+        String name;
+        String authProviderUserId;
+        if (oAuth2User instanceof OidcUser) {
+            name = oAuth2User.getAttribute("name");
+            authProviderUserId = oAuth2User.getAttribute("sub");
+        } else {
+            name = oAuth2User.getAttribute("login");
+            authProviderUserId = Objects.requireNonNull(oAuth2User.getAttribute("id")).toString();
+        }
+
         if (userAuthProviderOptional.isPresent()) {
             UserAuthProvider userAuthProvider = userAuthProviderOptional.get();
-            userAuthProvider.setName(name);
+            userAuthProvider.setAuthProviderName(name);
+            user.setLastSignedInAt(Instant.now());
             this.userAuthProviderRepository.save(userAuthProvider);
+            this.userRepository.save(user);
 
             return user;
         }
@@ -107,9 +131,11 @@ public class UserService {
                 user,
                 authProvider,
                 user.getEmail(),
-                name
+                name,
+                authProviderUserId
         );
         user.getUserAuthProviders().add(userAuthProvider);
+        user.setLastSignedInAt(Instant.now());
         this.userAuthProviderRepository.save(userAuthProvider);
 
         return this.userRepository.save(user);
@@ -133,8 +159,8 @@ public class UserService {
      */
     void activateUserAccount(UsernamePasswordUser usernamePasswordUser) {
         var user = this.userRepository.getReferenceById(usernamePasswordUser.user().getId());
-        this.userVerificationTokenService.deleteAllTokens(user);
-        var token = this.userVerificationTokenService.createAccountActivationToken(user);
+        this.userActivationTokenService.deleteTokensByUser(user);
+        var token = this.userActivationTokenService.createAccountActivationToken(user);
         this.emailService.sendAccountActivationEmail(usernamePasswordUser.user().getEmail(),
                 usernamePasswordUser.user().getEmail(),
                 token.getTokenValue());
@@ -142,7 +168,7 @@ public class UserService {
     }
 
     boolean verifyUser(String tokenValue) {
-        var tokenOptional = this.userVerificationTokenService.verifyToken(tokenValue);
+        var tokenOptional = this.userActivationTokenService.verifyToken(tokenValue);
         if (tokenOptional.isEmpty()) {
             return false;
         }
@@ -185,22 +211,39 @@ public class UserService {
         }
     }
 
-    private UserAuthProvider createUserAuthProvider(User user, String email, String name, AuthProvider authProvider) {
+    private UserAuthProvider createUserAuthProvider(User user,
+                                                    String email,
+                                                    String name,
+                                                    String authProviderUserId,
+                                                    AuthProvider authProvider) {
         return new UserAuthProvider(
                 new UserAuthProviderKey(user.getId(), authProvider.getId()),
                 user,
                 authProvider,
                 email,
-                name
+                name,
+                authProviderUserId
         );
     }
 
-    private void persistUserAuthDetails(User user, AuthProvider authProvider) {
-        var userAuthProvider = createUserAuthProvider(user, user.getEmail(), user.getName(), authProvider);
+    private void persistUserAuthDetails(User user, String authProviderUserId, AuthProvider authProvider) {
+        this.userRepository.save(user);
+        if (authProviderUserId == null) {
+            authProviderUserId = user.getId().toString();
+        }
+
+        var userAuthProvider = createUserAuthProvider(user,
+                user.getEmail(),
+                user.getName(),
+                authProviderUserId,
+                authProvider);
         Set<UserAuthProvider> userAuthProviders = Set.of(userAuthProvider);
         user.setUserAuthProviders(userAuthProviders);
-
-        this.userRepository.save(user);
         this.userAuthProviderRepository.save(userAuthProvider);
+    }
+
+    public void updateLastSignedInAt(User user) {
+        user.setLastSignedInAt(Instant.now());
+        this.userRepository.save(user);
     }
 }

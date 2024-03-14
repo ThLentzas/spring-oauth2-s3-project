@@ -23,7 +23,7 @@ import java.io.Serializable;
     itself implements Serializable as well
  */
 @Entity
-@Table(name = "users_providers")
+@Table(name = "users_auth_providers")
 @Getter
 @Setter
 @EqualsAndHashCode(of = "id")
@@ -31,40 +31,60 @@ public class UserAuthProvider implements Serializable {
     /*
         If you provide your own id value then Spring Data will assume that you need to check the DB for a duplicate
         key (hence the select+insert).
+
+    select
+        uap1_0.auth_provider_id,
+        uap1_0.user_id,
+        uap1_0.auth_provider_email,
+        uap1_0.auth_provider_name,
+        uap1_0.auth_provider_user_id
+    from
+        users_auth_providers uap1_0
+    where
+        (
+            uap1_0.auth_provider_id, uap1_0.user_id
+        ) in ((?, ?))
      */
     @EmbeddedId
     private UserAuthProviderKey id;
     /*
-        We are basically telling Hibernate to map the id of the current Entity to a column of another
-        Since the PK of the UserAuthProvider is a composed PK we have to map each property of the id.
+        We are basically telling Hibernate to map the id of the current Entity to a column of another Since the PK of
+        the UserAuthProvider is a composed PK we have to map each property of the id.
 
         @MapsId("userId")
         @JoinColumn(name = "id") => Maps the property "userId" of the composed id with the id of the user and the column
-         in the table users_providers is called user_id
+        in the table users_providers is called user_id
 
-        @MapsId("providerId")
-        @JoinColumn(name = "id") => Maps the property "providerId" of the composed id with the id of the provider and
-        the column in the table users_providers is called provider_id
+        @MapsId("authProviderId")
+        @JoinColumn(name = "id") => Maps the property "authProviderId" of the composed id with the id of the provider
+        and the column in the table users_providers is called auth_provider_id
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("userId")
     @JoinColumn(name = "user_id")
     private User user;
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("providerId")
-    @JoinColumn(name = "provider_id")
+    @MapsId("authProviderId")
+    @JoinColumn(name = "auth_provider_id")
     private AuthProvider authProvider;
-    private String email;
-    private String name;
+    private String authProviderUserId;
+    private String authProviderEmail;
+    private String authProviderName;
 
     public UserAuthProvider() {
     }
 
-    public UserAuthProvider(UserAuthProviderKey id, User user, AuthProvider authProvider, String email, String name) {
+    public UserAuthProvider(UserAuthProviderKey id,
+                            User user,
+                            AuthProvider authProvider,
+                            String authProviderEmail,
+                            String authProviderName,
+                            String authProviderUserId) {
         this.id = id;
         this.user = user;
         this.authProvider = authProvider;
-        this.email = email;
-        this.name = name;
+        this.authProviderEmail = authProviderEmail;
+        this.authProviderName = authProviderName;
+        this.authProviderUserId = authProviderUserId;
     }
 }

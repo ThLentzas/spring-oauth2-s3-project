@@ -52,6 +52,7 @@ logging:
     org:
       springframework:
         web: DEBUG
+        transaction: TRACE
         security: TRACE
 
 

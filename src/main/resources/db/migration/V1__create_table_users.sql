@@ -5,7 +5,7 @@ CREATE TYPE user_role AS ENUM (
 
 CREATE TABLE IF NOT EXISTS users (
     id       SERIAL,
-    email    VARCHAR(50) NOT NULL,
+    email    TEXT NOT NULL,
     name     TEXT        NOT NULL,
     password TEXT        NOT NULL,
     role     user_role   NOT NULL,

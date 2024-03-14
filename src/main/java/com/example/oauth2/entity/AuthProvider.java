@@ -11,6 +11,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
@@ -25,9 +26,10 @@ import java.io.Serializable;
     SPRING_SECURITY_CONTEXT KEY. The Authentication object itself implements Serializable as well
  */
 @Entity
-@Table(name = "providers")
+@Table(name = "auth_providers")
 @Getter
 @Setter
+@DynamicUpdate
 @EqualsAndHashCode(of = "id")
 public class AuthProvider implements Serializable {
     @Id

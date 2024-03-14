@@ -3,7 +3,7 @@ package com.example.oauth2.token;
 import com.example.oauth2.entity.UserActivationToken;
 import com.example.oauth2.entity.User;
 import com.example.oauth2.utils.TokenUtils;
-import lombok.RequiredArgsConstructor;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +29,7 @@ public class UserActivationTokenService {
         var token = TokenUtils.generateToken();
         var expiryTime = Instant.now().plus(1, ChronoUnit.DAYS);
         var userActivationToken = new UserActivationToken(user, token, expiryTime);
+        this.userActivationTokenRepository.deleteTokensByUser(user);
 
         return this.userActivationTokenRepository.save(userActivationToken);
     }
@@ -63,7 +66,7 @@ public class UserActivationTokenService {
         return tokenOptional;
     }
 
-    public void deleteAllTokens(User user) {
-        this.userActivationTokenRepository.deleteAllTokensByUser(user);
+    public void deleteTokensByUser(User user) {
+        this.userActivationTokenRepository.deleteTokensByUser(user);
     }
 }

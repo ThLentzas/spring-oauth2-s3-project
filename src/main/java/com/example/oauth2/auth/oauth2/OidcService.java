@@ -18,6 +18,13 @@ public class OidcService extends OidcUserService {
     private final UserService userService;
     private final AuthProviderService authProviderService;
 
+    /*
+        The idToken is always a JWT and the subject of the token is the id the user has in the authProvider. For Google
+        the subject is the GoogleId the user has for Google, and it will always be the same for that provider
+
+        When we call registerOauth2User() with oidcUser.getAttribute("sub") it's the same as calling it with
+        oidcUser.getIdToken().getClaims().get("sub")); The claim sub of the idToken holds the auth provider's user id
+     */
     @Override
     public OidcUser loadUser(OidcUserRequest userRequest) {
         OidcUser oidcUser = super.loadUser(userRequest);
@@ -27,7 +34,7 @@ public class OidcService extends OidcUserService {
         var authUserProvider = this.authProviderService.findByAuthProviderType(authProvider);
 
         User user;
-        var optionalUser = this.userService.findByEmail(oidcUser.getEmail());
+        var optionalUser = this.userService.findByEmail(oidcUser.getAttribute("email"));
 
         /*
             If we wanted more properties from the Oauth2 user we could pass the whole object. Since OidcUser extends
@@ -36,11 +43,12 @@ public class OidcService extends OidcUserService {
         if(optionalUser.isEmpty()) {
             user = this.userService.registerOauth2User(oidcUser.getAttribute("name"),
                     oidcUser.getEmail(),
+                    oidcUser.getAttribute("sub"),
                     authUserProvider
             );
         } else {
             user = optionalUser.get();
-            user = this.userService.updateOauth2User(user, oidcUser.getAttribute("name"), authUserProvider);
+            user = this.userService.updateOauth2User(user, oidcUser, authUserProvider);
         }
 
         return new SSOUser(user);

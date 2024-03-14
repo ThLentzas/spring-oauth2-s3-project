@@ -1,6 +1,5 @@
 package com.example.oauth2.auth.oauth2;
 
-import jakarta.transaction.Transactional;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -13,9 +12,11 @@ import com.example.oauth2.user.UserService;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
-public class Oauth2Service extends DefaultOAuth2UserService {
+public class OAuth2Service extends DefaultOAuth2UserService {
     private final UserService userService;
     private final AuthProviderService authProviderService;
     private final GitHubService gitHubService;
@@ -29,7 +30,6 @@ public class Oauth2Service extends DefaultOAuth2UserService {
                 .getClientName()
                 .toUpperCase());
         var authProvider = this.authProviderService.findByAuthProviderType(authProviderType);
-
         User user;
         var optionalUser = this.userService.findByEmail(githubEmail.email());
 
@@ -40,10 +40,12 @@ public class Oauth2Service extends DefaultOAuth2UserService {
         if(optionalUser.isEmpty()) {
             user = this.userService.registerOauth2User(oAuth2User.getAttribute("login"),
                     githubEmail.email(),
-                    authProvider);
+                    Objects.requireNonNull(oAuth2User.getAttribute("id")).toString(),
+                    authProvider
+            );
         } else {
             user = optionalUser.get();
-            user = this.userService.updateOauth2User(user, oAuth2User.getAttribute("login"), authProvider);
+            user = this.userService.updateOauth2User(user,oAuth2User, authProvider);
         }
 
         return new SSOUser(user);
