@@ -1,33 +1,45 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="">
-  <meta name="author" content="">
-  <title>Register</title>
-  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
-  <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" integrity="sha384-oOE/3m0LUMPub4kaC09mrdEhIc+e3exm4xOGxAmuFXhBNF4hcg/6MiAXAf5p0P56" crossorigin="anonymous"/>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Register</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet"
+          integrity="sha384-oOE/3m0LUMPub4kaC09mrdEhIc+e3exm4xOGxAmuFXhBNF4hcg/6MiAXAf5p0P56" crossorigin="anonymous"/>
 </head>
 <body>
+
 <div class="container">
-  <form th:action="@{/api/v1/auth/register}" th:object="${registerRequest}" method="post">
-    <h2 class="form-signin-heading">Register</h2>
-    <p>
-      <label for="name" class="sr-only">Name</label>
-      <input type="text" id="name" th:field="*{name}" class="form-control" placeholder="Name" required autofocus>
-    </p>
-    <p>
-      <label for="email" class="sr-only">Email address</label>
-      <input type="email" id="email" th:field="*{email}" class="form-control" placeholder="Email address" required>
-    </p>
-    <p>
-      <label for="password" class="sr-only">Password</label>
-      <input type="password" id="password" th:field="*{password}" class="form-control" placeholder="Password" required>
-    </p>
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-    <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>
-  </form>
+    <!-- https://www.thymeleaf.org/doc/tutorials/2.1/thymeleafspring.html -->
+    <!-- ${} variable expression Every form must have a Command object that will be used by the framework for
+    establishing and obtaining the values input by the user at the browser side. We specify the key from the attribute
+    that we added in our model. model.addAttribute("registerRequest", new RegisterRequest()); The th:object in Thymeleaf
+    denotes which object from the model should be used as the form-backing object. This object is identified by the key
+    we specify when adding the object to the model in the controller-->
+    <form th:action="@{/api/v1/auth/register}" th:object="${registerRequest}" method="post">
+        <h2 class="form-signin-heading">Register</h2>
+        <p>
+            <label for="name" class="sr-only">Name</label>
+            <!-- ${} selection expression -->
+            <input type="text" id="name" th:field="*{name}" class="form-control" placeholder="Name" required autofocus>
+        </p>
+        <p>
+            <label for="email" class="sr-only">Email address</label>
+            <input type="email" id="email" th:field="*{email}" class="form-control" placeholder="Email address"
+                   required>
+        </p>
+        <p>
+            <label for="password" class="sr-only">Password</label>
+            <input type="password" id="password" th:field="*{password}" class="form-control" placeholder="Password"
+                   required>
+        </p>
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>
+    </form>
 </div>
 </body>
 </html>

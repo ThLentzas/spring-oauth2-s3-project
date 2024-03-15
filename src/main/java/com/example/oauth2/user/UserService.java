@@ -10,6 +10,7 @@ import com.example.oauth2.exception.DuplicateResourceException;
 import com.example.oauth2.auth.usernamepassword.UsernamePasswordUser;
 import com.example.oauth2.email.EmailService;
 
+import com.example.oauth2.utils.PasswordUtils;
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
 import org.passay.LengthRule;
@@ -186,28 +187,18 @@ public class UserService {
         return this.userRepository.findByEmail(email);
     }
 
+    public void save(User user) {
+        this.userRepository.save(user);
+    }
+
     private void validateUser(User user) {
         validateEmail(user.getEmail());
-        validatePassword(user.getPassword());
+        PasswordUtils.validatePassword(user.getPassword());
     }
 
     private void validateEmail(String email) {
         if (!email.contains("@")) {
             throw new IllegalArgumentException("Invalid email format");
-        }
-    }
-
-    private void validatePassword(String password) {
-        var validator = new PasswordValidator(new LengthRule(12, 128),
-                new CharacterRule(EnglishCharacterData.UpperCase, 1),
-                new CharacterRule(EnglishCharacterData.LowerCase, 1),
-                new CharacterRule(EnglishCharacterData.Digit, 1),
-                new CharacterRule(EnglishCharacterData.Special, 1)
-        );
-
-        RuleResult result = validator.validate(new PasswordData(password));
-        if (!result.isValid()) {
-            throw new IllegalArgumentException(validator.getMessages(result).get(0));
         }
     }
 

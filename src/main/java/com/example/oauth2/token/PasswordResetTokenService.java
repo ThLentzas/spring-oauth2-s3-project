@@ -2,17 +2,23 @@ package com.example.oauth2.token;
 
 import com.example.oauth2.email.EmailService;
 import com.example.oauth2.entity.PasswordResetToken;
+import com.example.oauth2.token.dto.PasswordResetConfirmationRequest;
 import com.example.oauth2.token.dto.PasswordResetRequest;
 import com.example.oauth2.user.UserService;
+import com.example.oauth2.utils.PasswordUtils;
 import com.example.oauth2.utils.TokenUtils;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 import jakarta.transaction.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,6 +27,8 @@ public class PasswordResetTokenService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailService emailService;
     private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
+    private static final Logger logger = LoggerFactory.getLogger(PasswordResetTokenService.class);
 
     /*
         findByEmail() is a custom method we created, and it's not annotated with @Transactional. It's a read, so it is
@@ -50,5 +58,49 @@ public class PasswordResetTokenService {
             }
             this.emailService.sendPasswordResetEmail(passwordResetRequest.email(), token);
         });
+    }
+
+    public boolean resetPassword(String tokenValue, PasswordResetConfirmationRequest request) {
+        var tokenOptional = verifyToken(tokenValue);
+        if(tokenOptional.isEmpty()) {
+            return false;
+        }
+
+        if(!request.getNewPassword().equals(request.getConfirmationPassword())) {
+            throw new RuntimeException(":)");
+        }
+
+        var passwordResetToken = tokenOptional.get();
+        PasswordUtils.validatePassword(request.getNewPassword());
+        passwordResetToken.getUser().setPassword(this.passwordEncoder.encode(request.getNewPassword()));
+        this.userService.save(passwordResetToken.getUser());
+        this.passwordResetTokenRepository.delete(passwordResetToken);
+
+        return true;
+    }
+
+    public Optional<PasswordResetToken> verifyToken(String tokenValue) {
+        if (tokenValue.isBlank()) {
+            logger.info("Received empty password reset token");
+
+            return Optional.empty();
+        }
+
+        var tokenOptional = this.passwordResetTokenRepository.findByTokenValue(tokenValue);
+        if (tokenOptional.isEmpty()) {
+            logger.info("Password reset token not found for token value: {}", tokenValue);
+
+            return tokenOptional;
+        }
+
+        var passwordResetToken = tokenOptional.get();
+        if (passwordResetToken.getExpiryDate().isBefore(Instant.now())) {
+            logger.info("Password reset link expired for user with id: {}", passwordResetToken.getUser().getId());
+            this.passwordResetTokenRepository.delete(passwordResetToken);
+
+            return Optional.empty();
+        }
+
+        return tokenOptional;
     }
 }

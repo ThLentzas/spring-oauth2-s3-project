@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
 import java.util.UUID;
 
 interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, UUID> {
@@ -18,4 +19,12 @@ interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken,
                 WHERE prt.user = :user
             """)
     void deleteTokensByUser(@Param("user") User user);
+
+    @Query("""
+                SELECT prt
+                FROM PasswordResetToken prt
+                JOIN FETCH prt.user
+                WHERE prt.tokenValue = :tokenValue
+            """)
+    Optional<PasswordResetToken> findByTokenValue(@Param("tokenValue") String tokenValue);
 }

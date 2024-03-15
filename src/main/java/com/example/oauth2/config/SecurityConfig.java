@@ -30,6 +30,7 @@ class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> {
                     authorize.requestMatchers(HttpMethod.GET, "/register").permitAll();
+                    authorize.requestMatchers(HttpMethod.GET, "/password_reset/confirm/**").permitAll();
                     authorize.requestMatchers(HttpMethod.GET, "/api/v1/user/verify/**").permitAll();
                     authorize.requestMatchers("/api/v1/auth/**").permitAll();
                     authorize.anyRequest().authenticated();
