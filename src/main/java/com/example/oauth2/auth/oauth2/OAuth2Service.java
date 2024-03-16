@@ -48,6 +48,6 @@ public class OAuth2Service extends DefaultOAuth2UserService {
             user = this.userService.updateOauth2User(user,oAuth2User, authProvider);
         }
 
-        return new SSOUser(user);
+        return new SocialLoginUser(user);
     }
 }

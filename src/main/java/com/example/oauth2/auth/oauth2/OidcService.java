@@ -51,6 +51,6 @@ public class OidcService extends OidcUserService {
             user = this.userService.updateOauth2User(user, oidcUser, authUserProvider);
         }
 
-        return new SSOUser(user);
+        return new SocialLoginUser(user);
     }
 }

@@ -18,7 +18,7 @@ import com.example.oauth2.entity.User;
     the Security Context that is stored in Redis as the value of the SPRING_SECURITY_CONTEXT KEY. The Authentication
     object itself implements Serializable as well
  */
-record SSOUser(User user) implements OidcUser, Serializable {
+record SocialLoginUser(User user) implements OidcUser, Serializable {
 
     @Override
     public Map<String, Object> getClaims() {

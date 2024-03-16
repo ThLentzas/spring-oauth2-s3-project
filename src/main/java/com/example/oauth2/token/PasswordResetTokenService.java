@@ -1,7 +1,9 @@
 package com.example.oauth2.token;
 
+import com.example.oauth2.authprovider.AuthProviderType;
 import com.example.oauth2.email.EmailService;
 import com.example.oauth2.entity.PasswordResetToken;
+import com.example.oauth2.entity.User;
 import com.example.oauth2.token.dto.PasswordResetConfirmationRequest;
 import com.example.oauth2.token.dto.PasswordResetRequest;
 import com.example.oauth2.user.UserService;
@@ -44,29 +46,30 @@ public class PasswordResetTokenService {
      */
     @Transactional
     public void createPasswordResetToken(PasswordResetRequest passwordResetRequest, boolean linking) {
-        this.userService.findByEmail(passwordResetRequest.email()).ifPresent(user -> {
-            var token = TokenUtils.generateToken();
-            var expiryDate = Instant.now().plus(3, ChronoUnit.HOURS);
-            var passwordResetToken = new PasswordResetToken(user, token, expiryDate);
+        if (linking) {
+            this.userService.findByEmail(passwordResetRequest.getEmail()).ifPresent(user -> {
+                var token = generatePasswordResetToken(user);
+                this.emailService.sendAccountRegistrationLinkingEmail(passwordResetRequest.getEmail(),
+                        user.getName(),
+                        token.getTokenValue());
+            });
+            return;
+        }
 
-            this.passwordResetTokenRepository.deleteTokensByUser(user);
-            this.passwordResetTokenRepository.save(passwordResetToken);
-
-            if (linking) {
-                this.emailService.sendAccountRegistrationLinkingEmail(passwordResetRequest.email(), user.getName(), token);
-                return;
-            }
-            this.emailService.sendPasswordResetEmail(passwordResetRequest.email(), token);
-        });
+        this.userService.findByEmailAndProvider(passwordResetRequest.getEmail(), AuthProviderType.EMAIL).ifPresent(
+                userAuthProvider -> {
+                    var token = generatePasswordResetToken(userAuthProvider.getUser());
+                    this.emailService.sendPasswordResetEmail(passwordResetRequest.getEmail(), token.getTokenValue());
+                });
     }
 
     public boolean resetPassword(String tokenValue, PasswordResetConfirmationRequest request) {
         var tokenOptional = verifyToken(tokenValue);
-        if(tokenOptional.isEmpty()) {
+        if (tokenOptional.isEmpty()) {
             return false;
         }
 
-        if(!request.getNewPassword().equals(request.getConfirmationPassword())) {
+        if (!request.getNewPassword().equals(request.getConfirmationPassword())) {
             throw new RuntimeException(":)");
         }
 
@@ -102,5 +105,16 @@ public class PasswordResetTokenService {
         }
 
         return tokenOptional;
+    }
+
+    private PasswordResetToken generatePasswordResetToken(User user) {
+        var token = TokenUtils.generateToken();
+        var expiryDate = Instant.now().plus(3, ChronoUnit.HOURS);
+        var passwordResetToken = new PasswordResetToken(user, token, expiryDate);
+
+        this.passwordResetTokenRepository.deleteTokensByUser(user);
+        this.passwordResetTokenRepository.save(passwordResetToken);
+
+        return passwordResetToken;
     }
 }

@@ -9,14 +9,8 @@ import com.example.oauth2.entity.User;
 import com.example.oauth2.exception.DuplicateResourceException;
 import com.example.oauth2.auth.usernamepassword.UsernamePasswordUser;
 import com.example.oauth2.email.EmailService;
-
 import com.example.oauth2.utils.PasswordUtils;
-import org.passay.CharacterRule;
-import org.passay.EnglishCharacterData;
-import org.passay.LengthRule;
-import org.passay.PasswordData;
-import org.passay.PasswordValidator;
-import org.passay.RuleResult;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -185,6 +179,9 @@ public class UserService {
 
     public Optional<User> findByEmail(String email) {
         return this.userRepository.findByEmail(email);
+    }
+    public Optional<UserAuthProvider> findByEmailAndProvider(String email, AuthProviderType authProviderType) {
+        return this.userAuthProviderRepository.findByEmailAndProvider(email, authProviderType);
     }
 
     public void save(User user) {

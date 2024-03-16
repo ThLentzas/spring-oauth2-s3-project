@@ -1,0 +1,35 @@
+.btn-primary {
+    background-color: #3F51B5;
+    border-color: #3F51B5;
+}
+
+.btn-primary:hover {
+    background-color: #3949ab;
+    border-color: #3949ab;
+}
+
+.form-control:focus {
+    border-color: #3F51B5;
+}
+
+input.form-control {
+    border-radius: 0.25rem !important;
+}
+
+.link {
+    color: #3F51B5;
+    text-decoration: none;
+}
+
+.link:hover {
+    text-decoration: underline;
+    color: #3949ab;
+}
+
+.fa-google {
+    background: conic-gradient(from -45deg, #ea4335 110deg, #4285f4 90deg 180deg, #34a853 180deg 270deg, #fbbc05 270deg) 73% 55%/150% 150% no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+}

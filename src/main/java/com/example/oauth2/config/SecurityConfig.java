@@ -21,6 +21,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 class SecurityConfig {
     private final UserService userService;
+
     /*
         If we had both formLogin(), httpBasic() and oauth2Login() and a request comes in with username/password and
         username:password in the Authorization header, there is priority based on how we declare things. So 1st we
@@ -30,7 +31,8 @@ class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> {
                     authorize.requestMatchers(HttpMethod.GET, "/register").permitAll();
-                    authorize.requestMatchers(HttpMethod.GET, "/password_reset/confirm/**").permitAll();
+                    authorize.requestMatchers(HttpMethod.GET, "/css/**").permitAll();
+                    authorize.requestMatchers(HttpMethod.GET, "/password_reset/**").permitAll();
                     authorize.requestMatchers(HttpMethod.GET, "/api/v1/user/verify/**").permitAll();
                     authorize.requestMatchers("/api/v1/auth/**").permitAll();
                     authorize.anyRequest().authenticated();
@@ -40,9 +42,13 @@ class SecurityConfig {
                     csrf.csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler());
                 })
                 //Explain with defaults()
-                .formLogin(formLoginConfigurer -> formLoginConfigurer.successHandler(new FormLoginSuccessHandler(userService)))
+                //https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/form.html
+                .formLogin(formLoginConfigurer -> {
+                    formLoginConfigurer.loginPage("/login").permitAll();
+                    formLoginConfigurer.successHandler(new FormLoginSuccessHandler(userService));
+                })
                 //it uses Open ID Connect under the hood for Google and oauth2 for GitHub
-                .oauth2Login(withDefaults());
+                .oauth2Login(oAuth2LoginConfigurer -> oAuth2LoginConfigurer.loginPage("/login"));
         return http.build();
     }
 }
