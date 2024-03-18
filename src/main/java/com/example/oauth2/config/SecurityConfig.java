@@ -10,11 +10,10 @@ import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 
 import com.example.oauth2.security.FormLoginSuccessHandler;
+import com.example.oauth2.security.OAuth2SuccessHandler;
 import com.example.oauth2.user.UserService;
 
 import lombok.RequiredArgsConstructor;
-
-import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity(debug = true)
@@ -31,7 +30,9 @@ class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> {
                     authorize.requestMatchers(HttpMethod.GET, "/register").permitAll();
+                    authorize.requestMatchers(HttpMethod.GET, "/account_activation").permitAll();
                     authorize.requestMatchers(HttpMethod.GET, "/css/**").permitAll();
+                    authorize.requestMatchers(HttpMethod.GET, "/png/**").permitAll();
                     authorize.requestMatchers(HttpMethod.GET, "/password_reset/**").permitAll();
                     authorize.requestMatchers(HttpMethod.GET, "/api/v1/user/verify/**").permitAll();
                     authorize.requestMatchers("/api/v1/auth/**").permitAll();
@@ -48,7 +49,10 @@ class SecurityConfig {
                     formLoginConfigurer.successHandler(new FormLoginSuccessHandler(userService));
                 })
                 //it uses Open ID Connect under the hood for Google and oauth2 for GitHub
-                .oauth2Login(oAuth2LoginConfigurer -> oAuth2LoginConfigurer.loginPage("/login"));
+                .oauth2Login(oAuth2LoginConfigurer -> {
+                    oAuth2LoginConfigurer.loginPage("/login");
+                    oAuth2LoginConfigurer.successHandler(new OAuth2SuccessHandler());
+                });
         return http.build();
     }
 }

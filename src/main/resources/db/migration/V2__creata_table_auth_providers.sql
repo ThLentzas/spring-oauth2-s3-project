@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS users_auth_providers (
     auth_provider_user_id TEXT NOT NULL,
     auth_provider_email TEXT NOT NULL,
     auth_provider_name TEXT NOT NULL,
+    enabled BOOLEAN NOT NULL,
     CONSTRAINT pk_users_providers PRIMARY KEY (user_id, auth_provider_id),
     CONSTRAINT fk_users_providers_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     CONSTRAINT fk_users_providers_provider_id FOREIGN KEY (auth_provider_id) REFERENCES auth_providers (id) ON DELETE CASCADE

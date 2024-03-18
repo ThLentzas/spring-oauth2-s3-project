@@ -5,6 +5,7 @@ import com.example.oauth2.entity.User;
 import com.example.oauth2.authprovider.AuthProviderService;
 import com.example.oauth2.user.UserService;
 
+import jakarta.transaction.Transactional;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -23,9 +24,15 @@ public class OidcService extends OidcUserService {
         the subject is the GoogleId the user has for Google, and it will always be the same for that provider
 
         When we call registerOauth2User() with oidcUser.getAttribute("sub") it's the same as calling it with
-        oidcUser.getIdToken().getClaims().get("sub")); The claim sub of the idToken holds the auth provider's user id
+        oidcUser.getIdToken().getClaims().get("sub")); The claim sub of the idToken holds the auth provider's user id.
+
+        The OidcUser(extends OAuth2user) is the user created based on that information retrieved from the
+        OAuth2Provider. The return value is the Principal of the Authentication. The Authentication is of type
+        OAuth2AuthenticationToken
      */
+
     @Override
+    @Transactional
     public OidcUser loadUser(OidcUserRequest userRequest) {
         OidcUser oidcUser = super.loadUser(userRequest);
         var authProvider = AuthProviderType.valueOf(userRequest.getClientRegistration()

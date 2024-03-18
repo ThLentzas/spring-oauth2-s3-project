@@ -10,6 +10,12 @@ import com.example.oauth2.user.UserService;
 import com.example.oauth2.utils.PasswordUtils;
 import com.example.oauth2.utils.TokenUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -17,11 +23,6 @@ import java.util.Optional;
 import jakarta.transaction.Transactional;
 
 import lombok.RequiredArgsConstructor;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -70,7 +71,7 @@ public class PasswordResetTokenService {
         }
 
         if (!request.getNewPassword().equals(request.getConfirmationPassword())) {
-            throw new RuntimeException(":)");
+            throw new BadCredentialsException("Passwords don't match");
         }
 
         var passwordResetToken = tokenOptional.get();

@@ -11,7 +11,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
@@ -29,7 +28,6 @@ import java.io.Serializable;
 @Table(name = "auth_providers")
 @Getter
 @Setter
-@DynamicUpdate
 @EqualsAndHashCode(of = "id")
 public class AuthProvider implements Serializable {
     @Id

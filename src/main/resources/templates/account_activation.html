@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title th:text="'Activation Link Sent'">Activation Link Sent</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+</head>
+<body class="bg-light">
+
+<div class="container text-center py-5">
+    <img th:src="@{/images/email.png}" alt="Email Icon" class="img-fluid" style="max-width: 30%; height: auto;">
+    <div class="mt-4">
+        <h2 class="font-weight-normal">Activation Link Sent!</h2>
+        <p>Please check your email to activate your account.</p>
+    </div>
+</div>
+</body>
+</html>

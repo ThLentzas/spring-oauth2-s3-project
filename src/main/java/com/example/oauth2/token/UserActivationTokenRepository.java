@@ -14,7 +14,9 @@ interface UserActivationTokenRepository extends JpaRepository<UserActivationToke
     @Query("""
                 SELECT uvt
                 FROM UserActivationToken uvt
-                JOIN FETCH uvt.user
+                JOIN FETCH uvt.user u
+                JOIN FETCH u.userAuthProviders uat
+                JOIN FETCH uat.authProvider
                 WHERE uvt.tokenValue = :tokenValue
             """)
     Optional<UserActivationToken> findByTokenValue(@Param("tokenValue") String tokenValue);

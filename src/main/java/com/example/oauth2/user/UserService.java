@@ -4,13 +4,19 @@ import com.example.oauth2.authprovider.AuthProviderType;
 import com.example.oauth2.entity.AuthProvider;
 import com.example.oauth2.entity.UserAuthProvider;
 import com.example.oauth2.entity.key.UserAuthProviderKey;
+import com.example.oauth2.exception.ServerErrorException;
 import com.example.oauth2.token.UserActivationTokenService;
 import com.example.oauth2.entity.User;
 import com.example.oauth2.exception.DuplicateResourceException;
 import com.example.oauth2.auth.usernamepassword.UsernamePasswordUser;
 import com.example.oauth2.email.EmailService;
+import com.example.oauth2.user.dto.UserProfile;
+import com.example.oauth2.user.dto.UserProfileMapper;
 import com.example.oauth2.utils.PasswordUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -22,7 +28,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
+
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +41,8 @@ public class UserService {
     private final UserActivationTokenService userActivationTokenService;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final UserProfileMapper userProfileMapper = new UserProfileMapper();
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     /*
         We set both the userAuthProvider to the user and the user to the userAuthProvider because the relationship is
@@ -41,17 +52,25 @@ public class UserService {
         case of a user already existing with the provided email via some oauth2 provider we have to update the
         relationship, but we call user = tmp.get(); and now the copy of the user reference we passed no longer points
         to the same object as the original so changing the user at this point no longer affects the original object.
+
+        Case 1: User does not exist, we create the user and the provider is EMAIL
+        Case 2: User exists with the same email and provider to be EMAIL, 409 conflict
+        Case 3: User exists with the same email under different provider(GOOGLE, GITHUB), we create the relationship
+        in the join table.
      */
     public User registerUsernamePasswordUser(User user, AuthProvider authProvider) {
         validateUser(user);
         var tmp = this.userRepository.findByEmail(user.getEmail());
 
-        //toDo: count the queries
+        /*
+            We are passing null, because the auth_provider_user_id in the case of the EMAIL provider will be the user's
+            id(PK), but the user is not persisted yet.
+         */
         if (tmp.isEmpty()) {
             user.setPassword(this.passwordEncoder.encode(user.getPassword()));
             user.setRole(Role.USER);
             user.setLastSignedInAt(Instant.now());
-            persistUserAuthDetails(user, null, authProvider);
+            persistUserAuthDetails(user, null, authProvider, false);
 
             return user;
         }
@@ -68,7 +87,8 @@ public class UserService {
                 user.getEmail(),
                 user.getName(),
                 String.valueOf(user.getId()),
-                authProvider
+                authProvider,
+                false
         );
         this.userAuthProviderRepository.save(userAuthProvider);
         user.getUserAuthProviders().add(userAuthProvider);
@@ -82,12 +102,11 @@ public class UserService {
                 .name(name)
                 .email(email)
                 .password(UUID.randomUUID().toString())
-                .enabled(true)
                 .role(Role.VERIFIED)
                 .verifiedAt(Instant.now())
                 .lastSignedInAt(Instant.now())
                 .build();
-        persistUserAuthDetails(user, authProviderUserId, authProvider);
+        persistUserAuthDetails(user, authProviderUserId, authProvider, true);
 
         return user;
     }
@@ -95,6 +114,11 @@ public class UserService {
     /*
         The reason we are not updating the auth provider's user id when the provider already exists for the user, and
         we only keep track of the latest name they have with that provider is because the id never changes
+
+        Case: If the user already exists for the given provider we make sure that we have the latest name for that user
+        based on the provider. Otherwise, we create the relationship between the user and the auth provider. When a
+        user is authenticated via an oauth2 provider is immediately verified and their account is activated, that's why
+        we pass true
      */
     public User updateOauth2User(User user, OAuth2User oAuth2User, AuthProvider authProvider) {
         var userAuthProviderOptional = user.getUserAuthProviders().stream()
@@ -127,7 +151,8 @@ public class UserService {
                 authProvider,
                 user.getEmail(),
                 name,
-                authProviderUserId
+                authProviderUserId,
+                true
         );
         user.getUserAuthProviders().add(userAuthProvider);
         user.setLastSignedInAt(Instant.now());
@@ -152,6 +177,7 @@ public class UserService {
         the actual entity since we are accessing one of its properties other than the id
 
      */
+    @Transactional
     void activateUserAccount(UsernamePasswordUser usernamePasswordUser) {
         var user = this.userRepository.getReferenceById(usernamePasswordUser.user().getId());
         this.userActivationTokenService.deleteTokensByUser(user);
@@ -159,9 +185,17 @@ public class UserService {
         this.emailService.sendAccountActivationEmail(usernamePasswordUser.user().getEmail(),
                 usernamePasswordUser.user().getEmail(),
                 token.getTokenValue());
-
     }
 
+    /*
+        This method gets called when the user clicks the link from their email to activate their account. We give the
+        user a new role, delete the token and also update the status for the auth provider. When auth provider is the
+        EMAIL, which is the only case where we will request the user to activate their account via email, we also have
+        to update the enabled column in the users_auth_providers table where provider is EMAIL. When we stream the
+        providers for that user, and we do not find a provider of type EMAIL it means there is a data integrity problem
+        in our db.
+     */
+    @Transactional
     boolean verifyUser(String tokenValue) {
         var tokenOptional = this.userActivationTokenService.verifyToken(tokenValue);
         if (tokenOptional.isEmpty()) {
@@ -169,17 +203,56 @@ public class UserService {
         }
 
         var token = tokenOptional.get();
-        token.getUser().setEnabled(true);
+        UserAuthProvider userAuthProvider = token.getUser().getUserAuthProviders().stream()
+                .filter(provider -> provider.getAuthProvider().getAuthProviderType().equals(AuthProviderType.EMAIL))
+                .findFirst()
+                .orElseThrow(() -> {
+                    logger.info("EMAIL provider was not found during account activation for user with id: {}",
+                            token.getUser().getId());
+                    return new ServerErrorException("The server encountered an internal error and was unable to complete your request. Please try again later");
+                });
+        userAuthProvider.setEnabled(true);
+
         token.getUser().setRole(Role.VERIFIED);
         token.getUser().setVerifiedAt(Instant.now());
         this.userRepository.save(token.getUser());
+        this.userActivationTokenService.delete(token);
+        this.userAuthProviderRepository.save(userAuthProvider);
 
         return true;
+    }
+
+    /*
+        If the principal of authentication object is of type UsernamePassword, we have to know if that user has or not
+        activated their profile to render the correct buttons in the user profile.
+     */
+    public UserProfile findByIdFetchingSocialAccounts(Long id, Authentication authentication) {
+        User user = this.userRepository.findByIdFetchingSocialAccounts(id).orElseThrow(() -> {
+            logger.info("User record was not found for the id of the current authenticated user: {}", id);
+            return new ServerErrorException("The server encountered an internal error and was unable to complete your request. Please try again later");
+        });
+
+        UserProfile userProfile = this.userProfileMapper.apply(user);
+        if (authentication.getPrincipal() instanceof UsernamePasswordUser) {
+            var enabled = user.getUserAuthProviders().stream()
+                    .filter(userAuthProvider ->
+                            userAuthProvider.getAuthProvider().getAuthProviderType().equals(AuthProviderType.EMAIL))
+                    .map(UserAuthProvider::isEnabled)
+                    .findFirst()
+                    .orElse(true);
+            if (Boolean.FALSE.equals(enabled)) {
+                userProfile.setEnabled(false);
+                return userProfile;
+            }
+        }
+        userProfile.setEnabled(true);
+        return userProfile;
     }
 
     public Optional<User> findByEmail(String email) {
         return this.userRepository.findByEmail(email);
     }
+
     public Optional<UserAuthProvider> findByEmailAndProvider(String email, AuthProviderType authProviderType) {
         return this.userAuthProviderRepository.findByEmailAndProvider(email, authProviderType);
     }
@@ -203,18 +276,23 @@ public class UserService {
                                                     String email,
                                                     String name,
                                                     String authProviderUserId,
-                                                    AuthProvider authProvider) {
+                                                    AuthProvider authProvider,
+                                                    boolean enabled) {
         return new UserAuthProvider(
                 new UserAuthProviderKey(user.getId(), authProvider.getId()),
                 user,
                 authProvider,
                 email,
                 name,
-                authProviderUserId
+                authProviderUserId,
+                enabled
         );
     }
 
-    private void persistUserAuthDetails(User user, String authProviderUserId, AuthProvider authProvider) {
+    private void persistUserAuthDetails(User user,
+                                        String authProviderUserId,
+                                        AuthProvider authProvider,
+                                        boolean enabled) {
         this.userRepository.save(user);
         if (authProviderUserId == null) {
             authProviderUserId = user.getId().toString();
@@ -224,7 +302,9 @@ public class UserService {
                 user.getEmail(),
                 user.getName(),
                 authProviderUserId,
-                authProvider);
+                authProvider,
+                enabled
+        );
         Set<UserAuthProvider> userAuthProviders = Set.of(userAuthProvider);
         user.setUserAuthProviders(userAuthProviders);
         this.userAuthProviderRepository.save(userAuthProvider);

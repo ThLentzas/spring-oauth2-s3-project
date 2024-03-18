@@ -13,31 +13,19 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Instant;
-import java.util.UUID;
+import java.io.Serializable;
 
 @Entity
-@Table(name = "user_activation_tokens")
-@Setter
+@Table(name = "social_accounts")
 @Getter
+@Setter
 @EqualsAndHashCode(of = "id")
-public class UserActivationToken {
+public class SocialAccount implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
     @Column(nullable = false)
-    private String tokenValue;
-    @Column(nullable = false)
-    private Instant expiryDate;
-
-    public UserActivationToken() {
-    }
-
-    public UserActivationToken(User user, String tokenValue, Instant expiryDate) {
-        this.user = user;
-        this.tokenValue = tokenValue;
-        this.expiryDate = expiryDate;
-    }
+    private String accountLink;
 }

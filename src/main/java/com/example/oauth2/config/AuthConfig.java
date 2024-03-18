@@ -12,6 +12,7 @@ import com.example.oauth2.user.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
+//Spring's autoconfigured DAOAuthenticationProvider will use the beans that we defined
 @Configuration
 @RequiredArgsConstructor
 class AuthConfig {

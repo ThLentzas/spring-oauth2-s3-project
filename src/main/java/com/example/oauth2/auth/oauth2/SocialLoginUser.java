@@ -14,11 +14,11 @@ import java.util.Map;
 import com.example.oauth2.entity.User;
 
 /*
-    The reason why SSOUser has to implement Serializable is, because its part of the Authentication object(Principal) of
-    the Security Context that is stored in Redis as the value of the SPRING_SECURITY_CONTEXT KEY. The Authentication
-    object itself implements Serializable as well
+    The reason why SocialLoginUser has to implement Serializable is, because its part of the Authentication
+    object(Principal) of the Security Context that is stored in Redis as the value of the SPRING_SECURITY_CONTEXT KEY.
+    The Authentication object itself implements Serializable as well
  */
-record SocialLoginUser(User user) implements OidcUser, Serializable {
+public record SocialLoginUser(User user) implements OidcUser, Serializable {
 
     @Override
     public Map<String, Object> getClaims() {

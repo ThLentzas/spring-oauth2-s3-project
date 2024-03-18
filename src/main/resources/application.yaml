@@ -11,10 +11,14 @@ spring:
             clientId: 187667400341-poa0ldtek40tu4vq84n6458msssror7o.apps.googleusercontent.com
             clientSecret: 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
   datasource:
-    url: jdbc:postgresql://localhost:5432/oauth2_s3
+    url: jdbc:postgresql://localhost:5432/oauth2
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
+    #Even if a method is annotated with @Transactional, it will not acquire a connection at the start of the method but
+    #only when it needs to hit the database.
+    hikari:
+      auto-commit: false
   flyway:
     baseline-on-migrate: true
     enabled: true
@@ -23,7 +27,6 @@ spring:
     baseline-description: "init"
     baseline-version: 0
     locations: classpath:db/migration
-
   mail:
     host: smtp.gmail.com
     port: 587
@@ -39,6 +42,7 @@ spring:
     mapper:
       accept-case-insensitive-enums: true
   jpa:
+    open-in-view: false
     show-sql: true
     properties:
       hibernate:

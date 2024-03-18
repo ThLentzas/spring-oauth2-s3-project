@@ -12,6 +12,8 @@ import jakarta.persistence.UniqueConstraint;
 
 import lombok.*;
 
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
@@ -20,8 +22,6 @@ import java.time.Instant;
 import java.util.Set;
 
 import com.example.oauth2.user.Role;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /*
     The reason why User has to implement Serializable is, because its part of the UsernamePasswordUser that implements
@@ -37,7 +37,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EqualsAndHashCode(of = "id")
 @EntityListeners(AuditingEntityListener.class)
 @Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor
+@NoArgsConstructor
 public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,8 +53,6 @@ public class User implements Serializable {
     @JdbcType(PostgreSQLEnumJdbcType.class)
     private Role role;
     @Column(nullable = false)
-    private boolean enabled;
-    @Column(nullable = false)
     @CreatedDate
     private Instant createdAt;
     private Instant verifiedAt;
@@ -61,8 +60,6 @@ public class User implements Serializable {
     private Instant lastSignedInAt;
     @OneToMany(mappedBy = "user")
     private Set<UserAuthProvider> userAuthProviders;
-
-    public User() {
-        enabled = false;
-    }
+    @OneToMany(mappedBy = "user")
+    private Set<SocialAccount> socialAccounts;
 }

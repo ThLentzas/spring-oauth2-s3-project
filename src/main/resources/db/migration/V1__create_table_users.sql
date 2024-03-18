@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS users (
     name     TEXT        NOT NULL,
     password TEXT        NOT NULL,
     role     user_role   NOT NULL,
-    enabled  BOOLEAN     NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     verified_at TIMESTAMP WITH TIME ZONE,
     last_signed_in_at TIMESTAMP WITH TIME ZONE NOT NULL,

@@ -27,6 +27,6 @@ public class FormLoginSuccessHandler implements AuthenticationSuccessHandler {
         UsernamePasswordUser usernamePasswordUser = (UsernamePasswordUser) authentication.getPrincipal();
         this.userService.updateLastSignedInAt(usernamePasswordUser.user());
 
-        response.sendRedirect("/home");
+        response.sendRedirect("/profile");
     }
 }

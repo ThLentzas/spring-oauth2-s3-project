@@ -1,5 +1,6 @@
 package com.example.oauth2.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -67,9 +68,14 @@ public class UserAuthProvider implements Serializable {
     @MapsId("authProviderId")
     @JoinColumn(name = "auth_provider_id")
     private AuthProvider authProvider;
+    @Column(nullable = false)
     private String authProviderUserId;
+    @Column(nullable = false)
     private String authProviderEmail;
+    @Column(nullable = false)
     private String authProviderName;
+    @Column(nullable = false)
+    private boolean enabled;
 
     public UserAuthProvider() {
     }
@@ -79,12 +85,14 @@ public class UserAuthProvider implements Serializable {
                             AuthProvider authProvider,
                             String authProviderEmail,
                             String authProviderName,
-                            String authProviderUserId) {
+                            String authProviderUserId,
+                            boolean enabled) {
         this.id = id;
         this.user = user;
         this.authProvider = authProvider;
         this.authProviderEmail = authProviderEmail;
         this.authProviderName = authProviderName;
         this.authProviderUserId = authProviderUserId;
+        this.enabled = enabled;
     }
 }

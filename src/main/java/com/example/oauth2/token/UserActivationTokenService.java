@@ -4,6 +4,7 @@ import com.example.oauth2.entity.UserActivationToken;
 import com.example.oauth2.entity.User;
 import com.example.oauth2.utils.TokenUtils;
 
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class UserActivationTokenService {
         account under the same email, that user is already verified, but we will still send the activation email to make
         sure that they actually have access to that email
      */
+    @Transactional
     public UserActivationToken createAccountActivationToken(User user) {
         var token = TokenUtils.generateToken();
         var expiryTime = Instant.now().plus(1, ChronoUnit.DAYS);
@@ -68,5 +70,8 @@ public class UserActivationTokenService {
 
     public void deleteTokensByUser(User user) {
         this.userActivationTokenRepository.deleteTokensByUser(user);
+    }
+    public void delete(UserActivationToken token) {
+        this.userActivationTokenRepository.delete(token);
     }
 }

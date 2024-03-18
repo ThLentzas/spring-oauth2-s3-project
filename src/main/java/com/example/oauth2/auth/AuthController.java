@@ -1,7 +1,5 @@
 package com.example.oauth2.auth;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,18 +26,20 @@ class AuthController {
     private final PasswordResetTokenService passwordResetTokenService;
 
     @PostMapping("/register")
-    ResponseEntity<Void> registerUser(@ModelAttribute("registerRequest") RegisterRequest request, HttpSession session) {
+    String registerUser(@ModelAttribute("registerRequest") RegisterRequest request, HttpSession session) {
         this.usernamePasswordService.registerUser(request, session);
 
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        return "redirect:/account_activation";
     }
 
     @PostMapping("/password_reset")
-    ResponseEntity<Void> confirmPasswordReset(@Valid @ModelAttribute("passwordResetRequest")
-                                PasswordResetRequest request) {
+    String confirmPasswordReset(@Valid @ModelAttribute("passwordResetRequest")
+                                PasswordResetRequest request,
+                                RedirectAttributes redirectAttributes) {
         this.passwordResetTokenService.createPasswordResetToken(request, false);
+        redirectAttributes.addFlashAttribute("passwordResetGenericResponse", true);
 
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        return "redirect:/login";
     }
 
     @PostMapping("/password_reset/confirm")
@@ -48,7 +48,7 @@ class AuthController {
                                 PasswordResetConfirmationRequest request,
                                 RedirectAttributes redirectAttributes) {
         boolean updated = this.passwordResetTokenService.resetPassword(token, request);
-        if(updated) {
+        if (updated) {
             redirectAttributes.addFlashAttribute("passwordResetSuccess", true);
             return "redirect:/login";
         }

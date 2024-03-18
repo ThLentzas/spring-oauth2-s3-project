@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Objects;
 
+import jakarta.transaction.Transactional;
+
 @Service
 @RequiredArgsConstructor
 public class OAuth2Service extends DefaultOAuth2UserService {
@@ -21,7 +23,16 @@ public class OAuth2Service extends DefaultOAuth2UserService {
     private final AuthProviderService authProviderService;
     private final GitHubService gitHubService;
 
+    /*
+        In the oauth2 flow we are using the access token to make a request to the user-info endpoint to retrieve the
+        user's information. In OIDC the claims of the token which is always a JWT has attributes that are the relevant
+        user's information.
+
+        The oauth2User is the user created based on that information retrieved from the OAuth2Provider. The return value
+        is the Principal of the Authentication. The Authentication is of type OAuth2AuthenticationToken
+     */
     @Override
+    @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
         //The implementation it gets at runtime is DefaultOAuth2user
         OAuth2User oAuth2User = super.loadUser(userRequest);

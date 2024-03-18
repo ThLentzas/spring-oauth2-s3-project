@@ -10,6 +10,7 @@ import com.example.oauth2.user.UserService;
 import com.example.oauth2.email.EmailService;
 import com.example.oauth2.token.UserActivationTokenService;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,18 +33,32 @@ public class UsernamePasswordService {
         The account will be in a "not activated" state where the user is asked to activate it whenever they visit the
         page, and there's a link to send an activation email, so they can still login, but they can't do certain things
         unless their account is activated. We still set the SPRING_SECURITY_CONTEXT_KEY of the current session, but
-        for subsequent requests for the user to be authenticated is not enough, the account has to be activated.
+        for subsequent requests for the user to be authenticated is not enough, the account has to be activated(user
+        having the role VERIFIED).
+
+        TOTAL QUERIES: 4 => 1.findByAuthProvider(), 2. findByEmail(), 3. save() for user 4.save() for provider by
+        performing a SELECT before to ensure the composed PK is unique in the join table.
      */
+    @Transactional
     public void registerUser(RegisterRequest registerRequest, HttpSession session) {
-        var authProvider = this.authProviderService.findByAuthProviderType(AuthProviderType.EMAIL);
         var user = User.builder()
                 .name(registerRequest.getName())
                 .email(registerRequest.getEmail())
                 .password(registerRequest.getPassword())
                 .build();
-
+        var authProvider = this.authProviderService.findByAuthProviderType(AuthProviderType.EMAIL);
         user = this.userService.registerUsernamePasswordUser(user, authProvider);
-        if(!user.isEnabled()) {
+        /*
+            Case: If the user's providers list is equal to 1 and that one is an EMAIL provider, it means that the user
+            didn't log in with some oauth2 provider using the same email prior to its current registration. In that case
+            we send an account activation email. Otherwise, it means that they have already logged in with an oauth2
+            provider with the same email, so for account linking they should go through password reset.(linking
+            the username/password account they just created with the oauth2 account that already exists under the same
+            email)
+         */
+        if (user.getUserAuthProviders().size() == 1 && user.getUserAuthProviders().stream()
+                .anyMatch(userAuthProvider ->
+                        userAuthProvider.getAuthProvider().getAuthProviderType().equals(AuthProviderType.EMAIL))) {
             var token = this.userVerificationTokenService.createAccountActivationToken(user);
             this.emailService.sendAccountActivationEmail(user.getEmail(), user.getName(), token.getTokenValue());
         } else {

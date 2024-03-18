@@ -1,6 +1,11 @@
 package com.example.oauth2.utils;
 
-import org.passay.*;
+import org.passay.CharacterRule;
+import org.passay.EnglishCharacterData;
+import org.passay.LengthRule;
+import org.passay.PasswordData;
+import org.passay.PasswordValidator;
+import org.passay.RuleResult;
 
 public final class PasswordUtils {
     private PasswordUtils() {

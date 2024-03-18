@@ -1,14 +1,15 @@
 package com.example.oauth2.user;
 
-import com.example.oauth2.auth.usernamepassword.UsernamePasswordUser;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.example.oauth2.auth.usernamepassword.UsernamePasswordUser;
+
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/api/v1/user")
@@ -33,12 +34,17 @@ class UserController {
         return null;
     }
 
-    //PutMapping can exist without request body. This also might the wrong HTTP verb to use
     @PreAuthorize("hasRole('USER')")
-    @PutMapping("/account/activate")
-    ResponseEntity<Void> activateAccount(@AuthenticationPrincipal UsernamePasswordUser user) {
+    @GetMapping("/account/activate")
+    String activateAccount(@AuthenticationPrincipal UsernamePasswordUser user) {
        this.userService.activateUserAccount(user);
 
-       return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+       return "redirect:/account_activation";
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/account/link")
+    String linkAccount() {
+        return "redirect:/login";
     }
 }

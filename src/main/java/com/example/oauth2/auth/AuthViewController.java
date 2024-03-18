@@ -11,6 +11,7 @@ import com.example.oauth2.token.dto.PasswordResetRequest;
 //toDo: Explain why we only have POST and GET requests
 @Controller
 class AuthViewController {
+
     @GetMapping("/login")
     String loginForm() {
         return "login";
@@ -21,6 +22,11 @@ class AuthViewController {
         model.addAttribute("registerRequest", new RegisterRequest());
 
         return "register";
+    }
+
+    @GetMapping("/account_activation")
+    String accountActivationResponse() {
+        return "account_activation";
     }
 
     @GetMapping("/password_reset")

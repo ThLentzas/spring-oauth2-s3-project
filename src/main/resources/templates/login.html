@@ -12,19 +12,15 @@
     <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet"
           integrity="sha384-oOE/3m0LUMPub4kaC09mrdEhIc+e3exm4xOGxAmuFXhBNF4hcg/6MiAXAf5p0P56" crossorigin="anonymous"/>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" rel="stylesheet">
-    <!-- If it does not show in preview, try to run the application it will pick it up-->
-    <link rel="stylesheet" type="text/css" th:href="@{/css/global.css}" />
+    <!-- If it does not show in preview, it's because of Spring Security, try to run the application it will pick it up.-->
+    <link th:href="@{/css/style.css}" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div class="container">
-    <!-- Try even if it says Cannot resolve 'passwordResetSuccess'-->
-    <div th:if="${passwordResetSuccess}" class="alert alert-success" role="alert">
-        Password has been reset successfully. You can now log in.
-    </div>
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-6">
-                <form class="form-signin" method="post" th:action="@{/login}">
+            <div class="col-md-4">
+                <form method="post" th:action="@{/login}">
                     <h2 class="form-signin-heading">Login</h2>
                     <div class="form-group">
                         <label for="username" class="sr-only">Username</label>
@@ -38,12 +34,12 @@
                     </div>
 
                     <div class="form-group d-flex justify-content-between align-items-center">
-                        <a href="@{/password_reset}" class="link">Forgot Password?</a>
+                        <a th:href="@{/password_reset}" class="link">Forgot Password?</a>
                         <button class="btn btn-primary" type="submit">Login</button>
                     </div>
 
                     <div class="form-group">
-                        <p class="text-center">Don't have an account? <a href="@{/register}" class="link">Sign up</a>
+                        <p class="text-center">Don't have an account? <a th:href="@{/register}" class="link">Sign up</a>
                         </p>
                     </div>
                 </form>
@@ -66,6 +62,13 @@
                 </a>
             </div>
         </div>
+    </div>
+    <!-- Try even if it says Cannot resolve 'passwordResetSuccess'-->
+    <div th:if="${passwordResetSuccess}" class="alert alert-success" role="alert">
+        Password has been reset successfully. You can now log in.
+    </div>
+    <div th:if="${passwordResetGenericResponse}" class="alert alert-info" role="alert">
+        If your email is registered, you will receive a password reset link.
     </div>
 </div>
 </body>
