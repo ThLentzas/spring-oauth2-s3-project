@@ -1,8 +1,9 @@
 package com.example.oauth2.token.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
+
+import jakarta.validation.constraints.NotBlank;
 
 @Getter
 @Setter

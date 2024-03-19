@@ -16,18 +16,29 @@
             <i id="editIcon" class="fas fa-user-edit text-white"></i>
         </a>
         <div class="bg-primary card-top"></div>
-        <img src="https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1176&q=80"
+        <img th:src="@{/images/user.png}"
              class="rounded-circle profile-image border border-white" alt="Profile Image">
         <div class="card-body text-center" style="padding-top: 50px;">
             <h5 class="card-title" th:text="${userProfile.name}">John Doe</h5>
-            <div class="d-flex flex-column align-items-start mb-3 mt-5">
+            <div class="d-flex flex-column align-items-start mb-3 mt-4">
                 <div th:if="${not #lists.isEmpty(userProfile.socialAccounts)}">
-                    <div th:each="socialAccount : ${userProfile.socialAccounts}">
-                        <a th:href="${socialAccount.accountLink()}" class="my-1 link"><i class="fas fa-link link-icon"></i>
-                            <span th:text="${socialAccount.accountLink()}"></span></a>
+                    <div th:if="${userProfile.socialAccounts.size() > 0}">
+                        <a th:href="${userProfile.socialAccounts.get(0).accountLink()}"
+                           class="d-flex align-items-center my-1 link">
+                            <i class="fab fa-linkedin link-icon fa-lg"></i>
+                            <span class="link-text" th:text="${userProfile.socialAccounts.get(0).accountLink()}"></span>
+                        </a>
+                    </div>
+                    <div th:if="${userProfile.socialAccounts.size() > 1}">
+                        <a th:href="${userProfile.socialAccounts.get(1).accountLink()}"
+                           class="d-flex align-items-center my-1 link">
+                            <i class="fab fa-github link-icon fa-lg"></i>
+                            <span class="link-text" th:text="${userProfile.socialAccounts.get(1).accountLink()}"></span>
+                        </a>
                     </div>
                 </div>
             </div>
+
             <div th:if="${userProfile.enabled}" class="d-grid gap-2">
                 <a th:href="@{/api/v1/user/account/link}" class="btn btn-success text-white mt-3">
                     <i class="fas fa-user-plus"></i> Link an account

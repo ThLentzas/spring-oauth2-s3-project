@@ -10,12 +10,12 @@ import com.example.oauth2.user.UserService;
 import com.example.oauth2.email.EmailService;
 import com.example.oauth2.token.UserActivationTokenService;
 
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
+import jakarta.transaction.Transactional;
 import jakarta.servlet.http.HttpSession;
 
 import lombok.RequiredArgsConstructor;

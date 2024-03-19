@@ -15,7 +15,7 @@ public class UserProfileMapper implements Function<User, UserProfile> {
                 user.getName(),
                 user.getSocialAccounts().stream()
                         .map(socialAccountDTOMapper)
-                        .collect(Collectors.toSet())
+                        .toList()
         );
     }
 }

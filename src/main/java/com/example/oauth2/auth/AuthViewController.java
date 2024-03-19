@@ -8,7 +8,6 @@ import com.example.oauth2.token.dto.PasswordResetConfirmationRequest;
 import com.example.oauth2.auth.usernamepassword.dto.RegisterRequest;
 import com.example.oauth2.token.dto.PasswordResetRequest;
 
-//toDo: Explain why we only have POST and GET requests
 @Controller
 class AuthViewController {
 

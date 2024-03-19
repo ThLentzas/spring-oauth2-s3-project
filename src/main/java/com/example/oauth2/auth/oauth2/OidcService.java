@@ -5,13 +5,14 @@ import com.example.oauth2.entity.User;
 import com.example.oauth2.authprovider.AuthProviderService;
 import com.example.oauth2.user.UserService;
 
-import jakarta.transaction.Transactional;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+
+import jakarta.transaction.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +31,6 @@ public class OidcService extends OidcUserService {
         OAuth2Provider. The return value is the Principal of the Authentication. The Authentication is of type
         OAuth2AuthenticationToken
      */
-
     @Override
     @Transactional
     public OidcUser loadUser(OidcUserRequest userRequest) {

@@ -1,11 +1,12 @@
 package com.example.oauth2.auth.usernamepassword;
 
-import com.example.oauth2.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+
+import com.example.oauth2.entity.User;
 
 /*
     The reason why UsernamePasswordUser DOES NOT HAVE to implement Serializable, despite the fact that its part of

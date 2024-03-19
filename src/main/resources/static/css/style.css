@@ -33,7 +33,15 @@ input.form-control {
 }
 
 .link-icon {
+    vertical-align: middle;
+    min-width: 25px;
+    text-align: center;
     color: #000 !important;
+}
+
+.link-text {
+    margin-left: 8px;
+    vertical-align: middle;
 }
 
 .fa-google {
@@ -51,7 +59,6 @@ input.form-control {
     top: 40px;
     left: 50%;
     transform: translateX(-50%);
-    border: 3px solid #FFFFFF !important;
     box-shadow: 0 0 0 4px #3F51B5;
     border-radius: 50%;
 }
