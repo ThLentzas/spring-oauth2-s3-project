@@ -1,6 +1,6 @@
 # User Management System
 
-A User Management System (UMS) for handling authentication and authorization. It supports traditional username and password accounts, account linking as well as OAuth2-based authentication, offering integration with external identity providers like Google, and GitHub.
+A User Management System for handling authentication and authorization. It supports traditional username and password accounts, account linking as well as OAuth2-based authentication, offering integration with external identity providers like Google, and GitHub.
 
 # Features
 - User registration and login with username and password
