@@ -56,7 +56,12 @@ logging:
     org:
       springframework:
         web: DEBUG
-        transaction: TRACE
+        transaction:
+          interceptor:
+            TransactionInterceptor: TRACE
+          orm:
+            jpa:
+              JpaTransactionManager: DEBUG
         security: TRACE
 
 
