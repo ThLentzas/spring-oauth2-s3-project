@@ -54,14 +54,12 @@ spring:
 logging:
   level:
     org:
+      security: TRACE
       springframework:
         web: DEBUG
-        transaction:
-          interceptor:
-            TransactionInterceptor: TRACE
-          orm:
-            jpa:
-              JpaTransactionManager: DEBUG
-        security: TRACE
+        transaction: TRACE
+        orm:
+          jpa:
+            JpaTransactionManager: TRACE
 
 
