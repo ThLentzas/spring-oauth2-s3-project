@@ -38,6 +38,7 @@ class SecurityConfig {
                     authorize.requestMatchers("/api/v1/auth/**").permitAll();
                     authorize.anyRequest().authenticated();
                 })
+                .securityContext(securityContext -> securityContext.requireExplicitSave(true))
                 .csrf(csrf -> {
                     csrf.csrfTokenRepository(new HttpSessionCsrfTokenRepository());
                     csrf.csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler());
@@ -56,14 +57,3 @@ class SecurityConfig {
         return http.build();
     }
 }
-
-/*
- .oauth2Login(login ->
-                        login.successHandler((request, response, authentication) -> {
-                            CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
-                            response.setHeader(csrfToken.getHeaderName(), csrfToken.getToken());
-                            SavedRequestAwareAuthenticationSuccessHandler handler = new SavedRequestAwareAuthenticationSuccessHandler();
-                            handler.onAuthenticationSuccess(request, response, authentication);
-                        })
-                );
- */

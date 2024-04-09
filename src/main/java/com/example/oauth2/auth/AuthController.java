@@ -1,5 +1,7 @@
 package com.example.oauth2.auth;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +16,6 @@ import com.example.oauth2.token.dto.PasswordResetConfirmationRequest;
 import com.example.oauth2.token.dto.PasswordResetRequest;
 
 import jakarta.validation.Valid;
-import jakarta.servlet.http.HttpSession;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,8 +27,10 @@ class AuthController {
     private final PasswordResetTokenService passwordResetTokenService;
 
     @PostMapping("/register")
-    String registerUser(@ModelAttribute("registerRequest") RegisterRequest request, HttpSession session) {
-        this.usernamePasswordService.registerUser(request, session);
+    String registerUser(@ModelAttribute("registerRequest") RegisterRequest registerRequest,
+                        HttpServletRequest servletRequest,
+                        HttpServletResponse response) {
+        this.usernamePasswordService.registerUser(registerRequest, servletRequest, response);
 
         return "redirect:/account_activation";
     }

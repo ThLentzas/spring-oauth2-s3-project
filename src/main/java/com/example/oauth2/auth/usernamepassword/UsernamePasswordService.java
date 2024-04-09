@@ -10,13 +10,16 @@ import com.example.oauth2.user.UserService;
 import com.example.oauth2.email.EmailService;
 import com.example.oauth2.token.UserActivationTokenService;
 
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
-import jakarta.servlet.http.HttpSession;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +31,9 @@ public class UsernamePasswordService {
     private final UserActivationTokenService userVerificationTokenService;
     private final PasswordResetTokenService passwordResetTokenService;
     private final EmailService emailService;
+    private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+    //https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html#use-securitycontextholderstrategy
+    private final SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
 
     /*
         The account will be in a "not activated" state where the user is asked to activate it whenever they visit the
@@ -40,7 +46,9 @@ public class UsernamePasswordService {
         performing a SELECT before to ensure the composed PK is unique in the join table.
      */
     @Transactional
-    public void registerUser(RegisterRequest registerRequest, HttpSession session) {
+    public void registerUser(RegisterRequest registerRequest,
+                             HttpServletRequest servletRequest,
+                             HttpServletResponse servletResponse) {
         var user = User.builder()
                 .name(registerRequest.getName())
                 .email(registerRequest.getEmail())
@@ -65,14 +73,18 @@ public class UsernamePasswordService {
             this.passwordResetTokenService.createPasswordResetToken(new PasswordResetRequest(user.getEmail()), true);
         }
 
-        setupSessionSpringSecurityContext(user, session);
+        setupSessionSpringSecurityContext(user, servletRequest, servletResponse);
     }
 
     /*
         For the form login, the Authentication object is of type UsernamePasswordAuthenticationToken, and for OAuth2,
         it is of OAuth2AuthenticationToken
+
+        https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html
      */
-    private void setupSessionSpringSecurityContext(User user, HttpSession session) {
+    private void setupSessionSpringSecurityContext(User user,
+                                                   HttpServletRequest request,
+                                                   HttpServletResponse response) {
         var usernamePasswordUser = new UsernamePasswordUser(user);
         var authentication = new UsernamePasswordAuthenticationToken(
                 usernamePasswordUser,
@@ -80,9 +92,11 @@ public class UsernamePasswordService {
                 usernamePasswordUser.getAuthorities()
         );
 
-        var context = SecurityContextHolder.createEmptyContext();
+        //https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html#use-securitycontextholderstrategy
+        var context = this.securityContextHolderStrategy.createEmptyContext();
         context.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
-        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+        this.securityContextHolderStrategy.setContext(context);
+        request.getSession().setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+        this.securityContextRepository.saveContext(context, request, response);
     }
 }
