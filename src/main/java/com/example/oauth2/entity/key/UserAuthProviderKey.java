@@ -1,11 +1,12 @@
 package com.example.oauth2.entity.key;
 
-import jakarta.persistence.Embeddable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+
+import jakarta.persistence.Embeddable;
 
 @Embeddable
 @Getter

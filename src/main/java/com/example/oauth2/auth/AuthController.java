@@ -1,7 +1,5 @@
 package com.example.oauth2.auth;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +14,8 @@ import com.example.oauth2.token.dto.PasswordResetConfirmationRequest;
 import com.example.oauth2.token.dto.PasswordResetRequest;
 
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,8 +35,9 @@ class AuthController {
         return "redirect:/account_activation";
     }
 
+    //https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-methods/flash-attributes.html
     @PostMapping("/password_reset")
-    String confirmPasswordReset(@Valid @ModelAttribute("passwordResetRequest")
+    String resetPassword(@Valid @ModelAttribute("passwordResetRequest")
                                 PasswordResetRequest request,
                                 RedirectAttributes redirectAttributes) {
         this.passwordResetTokenService.createPasswordResetToken(request, false);
@@ -56,6 +57,7 @@ class AuthController {
             return "redirect:/login";
         }
 
+        //toDo:error page
         return "redirect:/error";
     }
 }

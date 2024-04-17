@@ -3,6 +3,7 @@ package com.example.oauth2.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -17,8 +18,9 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity(debug = true)
+@EnableMethodSecurity
 @RequiredArgsConstructor
-class SecurityConfig {
+public class SecurityConfig {
     private final UserService userService;
 
     /*
@@ -34,6 +36,7 @@ class SecurityConfig {
                     authorize.requestMatchers(HttpMethod.GET, "/css/**").permitAll();
                     authorize.requestMatchers(HttpMethod.GET, "/png/**").permitAll();
                     authorize.requestMatchers(HttpMethod.GET, "/password_reset/**").permitAll();
+                    //It's permitAll() because its the endpoint that will be called from the user clicking the link on their email
                     authorize.requestMatchers(HttpMethod.GET, "/api/v1/user/verify/**").permitAll();
                     authorize.requestMatchers("/api/v1/auth/**").permitAll();
                     authorize.anyRequest().authenticated();

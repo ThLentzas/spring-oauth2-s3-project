@@ -68,7 +68,7 @@ public class UserService {
          */
         if (tmp.isEmpty()) {
             user.setPassword(this.passwordEncoder.encode(user.getPassword()));
-            user.setRole(Role.USER);
+            user.setRole(Role.ROLE_USER);
             user.setLastSignedInAt(Instant.now());
             persistUserAuthDetails(user, null, authProvider, false);
 
@@ -102,7 +102,7 @@ public class UserService {
                 .name(name)
                 .email(email)
                 .password(UUID.randomUUID().toString())
-                .role(Role.VERIFIED)
+                .role(Role.ROLE_VERIFIED)
                 .verifiedAt(Instant.now())
                 .lastSignedInAt(Instant.now())
                 .build();
@@ -175,7 +175,6 @@ public class UserService {
         user.getEmail() is because since we are using getReferenceById, a proxy is created with a property set that is
         the entity's id, and we use that for linking. If later we call user.getEmail() a query will be fired to fetch
         the actual entity since we are accessing one of its properties other than the id
-
      */
     @Transactional
     void activateUserAccount(UsernamePasswordUser usernamePasswordUser) {
@@ -213,7 +212,7 @@ public class UserService {
                 });
         userAuthProvider.setEnabled(true);
 
-        token.getUser().setRole(Role.VERIFIED);
+        token.getUser().setRole(Role.ROLE_VERIFIED);
         token.getUser().setVerifiedAt(Instant.now());
         this.userRepository.save(token.getUser());
         this.userActivationTokenService.delete(token);
@@ -246,7 +245,13 @@ public class UserService {
             }
         }
         userProfile.setEnabled(true);
+
         return userProfile;
+    }
+
+    public void updateLastSignedInAt(User user) {
+        user.setLastSignedInAt(Instant.now());
+        this.userRepository.save(user);
     }
 
     public Optional<User> findByEmail(String email) {
@@ -308,10 +313,5 @@ public class UserService {
         Set<UserAuthProvider> userAuthProviders = Set.of(userAuthProvider);
         user.setUserAuthProviders(userAuthProviders);
         this.userAuthProviderRepository.save(userAuthProvider);
-    }
-
-    public void updateLastSignedInAt(User user) {
-        user.setLastSignedInAt(Instant.now());
-        this.userRepository.save(user);
     }
 }

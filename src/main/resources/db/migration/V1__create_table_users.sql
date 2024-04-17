@@ -1,6 +1,6 @@
 CREATE TYPE user_role AS ENUM (
-    'USER',
-    'VERIFIED'
+    'ROLE_USER',
+    'ROLE_VERIFIED'
 );
 
 CREATE TABLE IF NOT EXISTS users (

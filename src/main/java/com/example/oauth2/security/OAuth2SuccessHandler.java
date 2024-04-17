@@ -8,7 +8,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 
 import java.io.IOException;
 
-//When the user logs in with the oauth2 flow gets redirect to /profile
+//When the user logs in with the oauth2 flow gets redirected to /profile
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     @Override

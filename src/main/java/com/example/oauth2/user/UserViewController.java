@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 class UserViewController {
     private final UserService userService;
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'VERIFIED')")
     @GetMapping("/profile")
     String profile(Model model, Authentication authentication) {
         Long userId = authentication.getPrincipal() instanceof UsernamePasswordUser usernamePasswordUser

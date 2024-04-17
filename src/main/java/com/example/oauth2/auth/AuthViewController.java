@@ -12,32 +12,31 @@ import com.example.oauth2.token.dto.PasswordResetRequest;
 class AuthViewController {
 
     @GetMapping("/login")
-    String loginForm() {
+    String loginView() {
         return "login";
     }
 
     @GetMapping("/register")
-    String registrationForm(Model model) {
+    String registrationView(Model model) {
         model.addAttribute("registerRequest", new RegisterRequest());
 
         return "register";
     }
 
     @GetMapping("/account_activation")
-    String accountActivationResponse() {
+    String accountActivationView() {
         return "account_activation";
     }
 
     @GetMapping("/password_reset")
-    String passwordResetForm(Model model) {
+    String passwordResetView(Model model) {
         model.addAttribute("passwordResetRequest", new PasswordResetRequest());
 
         return "password_reset";
     }
 
-
     @GetMapping("/password_reset/confirm")
-    String passwordResetConfirmationForm(Model model) {
+    String passwordResetConfirmationView(Model model) {
         model.addAttribute("passwordResetConfirmationRequest", new PasswordResetConfirmationRequest());
 
         return "password_reset_confirm";

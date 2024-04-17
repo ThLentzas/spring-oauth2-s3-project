@@ -20,18 +20,17 @@ class UserController {
     /*
         If the validation of the token in the activation link was successful the user is redirected to the login page
         to log in to their new account, otherwise the token was not valid and the user is redirected to an
-        error page.
+        error page. It's permitAll() because its the endpoint that will be called from the user clicking the link on
+        their email
      */
     @GetMapping("/verify")
     String verifyUser(@RequestParam(name = "token", defaultValue = "") String token) {
         boolean activated = this.userService.verifyUser(token);
-
         if(activated) {
             return "redirect:/login";
         }
-        //toDO: redirect to error page
 
-        return null;
+        return "redirect:/error";
     }
 
     @PreAuthorize("hasRole('USER')")
@@ -42,7 +41,7 @@ class UserController {
        return "redirect:/account_activation";
     }
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'VERIFIED')")
     @GetMapping("/account/link")
     String linkAccount() {
         return "redirect:/login";
