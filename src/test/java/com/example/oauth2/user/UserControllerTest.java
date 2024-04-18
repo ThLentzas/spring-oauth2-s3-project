@@ -23,10 +23,10 @@ import com.example.oauth2.security.WithMockCustomUser;
 @WebMvcTest(UserController.class)
 @Import(SecurityConfig.class)
 class UserControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
     @MockBean
     private UserService userService;
+    @Autowired
+    private MockMvc mockMvc;
 
     @Test
     void shouldRedirectToLoginViewAfterSuccessfulUserVerification() throws Exception {
