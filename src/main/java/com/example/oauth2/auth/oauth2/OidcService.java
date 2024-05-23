@@ -30,6 +30,8 @@ public class OidcService extends OidcUserService {
         The OidcUser(extends OAuth2user) is the user created based on that information retrieved from the
         OAuth2Provider. The return value is the Principal of the Authentication. The Authentication is of type
         OAuth2AuthenticationToken
+
+        https://docs.spring.io/spring-security/reference/servlet/oauth2/login/advanced.html
      */
     @Override
     @Transactional
