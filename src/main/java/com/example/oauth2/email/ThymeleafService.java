@@ -12,7 +12,7 @@ class ThymeleafService {
     private final TemplateEngine templateEngine;
 
     String setAccountVerificationEmailContext(String activationLink, String username) {
-        var context = new Context();
+        Context context = new Context();
         context.setVariable("activationLink", activationLink);
         context.setVariable("username", username);
 
@@ -20,7 +20,7 @@ class ThymeleafService {
     }
 
     String setAccountRegistrationLinkingEmailContext(String username, String tokenLink, String passwordResetLink) {
-        var context = new Context();
+        Context context = new Context();
         context.setVariable("username", username);
         context.setVariable("tokenLink", tokenLink);
         context.setVariable("passwordResetLink", passwordResetLink);
@@ -29,7 +29,7 @@ class ThymeleafService {
     }
 
     String setPasswordResetEmailContext(String tokenLink, String passwordResetLink) {
-        var context = new Context();
+        Context context = new Context();
         context.setVariable("tokenLink", tokenLink);
         context.setVariable("passwordResetLink", passwordResetLink);
 

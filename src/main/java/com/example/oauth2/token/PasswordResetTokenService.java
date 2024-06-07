@@ -49,7 +49,7 @@ public class PasswordResetTokenService {
     public void createPasswordResetToken(PasswordResetRequest passwordResetRequest, boolean linking) {
         if (linking) {
             this.userService.findByEmail(passwordResetRequest.getEmail()).ifPresent(user -> {
-                var token = generatePasswordResetToken(user);
+                PasswordResetToken token = generatePasswordResetToken(user);
                 this.emailService.sendAccountRegistrationLinkingEmail(passwordResetRequest.getEmail(),
                         user.getName(),
                         token.getTokenValue());
@@ -59,13 +59,13 @@ public class PasswordResetTokenService {
 
         this.userService.findByEmailAndProvider(passwordResetRequest.getEmail(), AuthProviderType.EMAIL).ifPresent(
                 userAuthProvider -> {
-                    var token = generatePasswordResetToken(userAuthProvider.getUser());
+                    PasswordResetToken token = generatePasswordResetToken(userAuthProvider.getUser());
                     this.emailService.sendPasswordResetEmail(passwordResetRequest.getEmail(), token.getTokenValue());
                 });
     }
 
     public boolean resetPassword(String tokenValue, PasswordResetConfirmationRequest request) {
-        var tokenOptional = verifyToken(tokenValue);
+        Optional<PasswordResetToken> tokenOptional = verifyToken(tokenValue);
         if (tokenOptional.isEmpty()) {
             return false;
         }
@@ -74,7 +74,7 @@ public class PasswordResetTokenService {
             throw new BadCredentialsException("Passwords don't match");
         }
 
-        var passwordResetToken = tokenOptional.get();
+        PasswordResetToken passwordResetToken = tokenOptional.get();
         PasswordUtils.validatePassword(request.getNewPassword());
         passwordResetToken.getUser().setPassword(this.passwordEncoder.encode(request.getNewPassword()));
         this.userService.save(passwordResetToken.getUser());
@@ -90,14 +90,14 @@ public class PasswordResetTokenService {
             return Optional.empty();
         }
 
-        var tokenOptional = this.passwordResetTokenRepository.findByTokenValue(tokenValue);
+        Optional<PasswordResetToken> tokenOptional = this.passwordResetTokenRepository.findByTokenValue(tokenValue);
         if (tokenOptional.isEmpty()) {
             logger.info("Password reset token not found for token value: {}", tokenValue);
 
             return tokenOptional;
         }
 
-        var passwordResetToken = tokenOptional.get();
+        PasswordResetToken passwordResetToken = tokenOptional.get();
         if (passwordResetToken.getExpiryDate().isBefore(Instant.now())) {
             logger.info("Password reset link expired for user with id: {}", passwordResetToken.getUser().getId());
             this.passwordResetTokenRepository.delete(passwordResetToken);
@@ -109,9 +109,9 @@ public class PasswordResetTokenService {
     }
 
     private PasswordResetToken generatePasswordResetToken(User user) {
-        var token = TokenUtils.generateToken();
-        var expiryDate = Instant.now().plus(3, ChronoUnit.HOURS);
-        var passwordResetToken = new PasswordResetToken(user, token, expiryDate);
+        String token = TokenUtils.generateToken();
+        Instant expiryDate = Instant.now().plus(3, ChronoUnit.HOURS);
+        PasswordResetToken passwordResetToken = new PasswordResetToken(user, token, expiryDate);
 
         this.passwordResetTokenRepository.deleteTokensByUser(user);
         this.passwordResetTokenRepository.save(passwordResetToken);

@@ -1,5 +1,7 @@
 package com.example.oauth2.auth.oauth2;
 
+import com.example.oauth2.auth.oauth2.dto.GithubEmail;
+import com.example.oauth2.entity.AuthProvider;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -10,9 +12,10 @@ import com.example.oauth2.authprovider.AuthProviderService;
 import com.example.oauth2.entity.User;
 import com.example.oauth2.user.UserService;
 
-import lombok.RequiredArgsConstructor;
-
 import java.util.Objects;
+import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
 
 import jakarta.transaction.Transactional;
 
@@ -38,13 +41,13 @@ public class OAuth2Service extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
         //The implementation it gets at runtime is DefaultOAuth2user
         OAuth2User oAuth2User = super.loadUser(userRequest);
-        var githubEmail = this.gitHubService.getGitHubEmail(userRequest.getAccessToken().getTokenValue());
-        var authProviderType = AuthProviderType.valueOf(userRequest.getClientRegistration()
+        GithubEmail githubEmail = this.gitHubService.getGitHubEmail(userRequest.getAccessToken().getTokenValue());
+        AuthProviderType authProviderType = AuthProviderType.valueOf(userRequest.getClientRegistration()
                 .getClientName()
                 .toUpperCase());
-        var authProvider = this.authProviderService.findByAuthProviderType(authProviderType);
+        AuthProvider authProvider = this.authProviderService.findByAuthProviderType(authProviderType);
         User user;
-        var optionalUser = this.userService.findByEmail(githubEmail.email());
+        Optional<User> optionalUser = this.userService.findByEmail(githubEmail.email());
 
         /*
             If we wanted more properties from the Oauth2 user we could pass the whole object. We can't call

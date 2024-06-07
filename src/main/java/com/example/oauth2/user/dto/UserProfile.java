@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
-import java.util.Set;
 
 import com.example.oauth2.socialaccount.dto.SocialAccountDTO;
 

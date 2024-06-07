@@ -3,13 +3,17 @@ package com.example.oauth2.auth.usernamepassword;
 import com.example.oauth2.auth.usernamepassword.dto.RegisterRequest;
 import com.example.oauth2.authprovider.AuthProviderType;
 import com.example.oauth2.authprovider.AuthProviderService;
+import com.example.oauth2.entity.AuthProvider;
 import com.example.oauth2.entity.User;
+import com.example.oauth2.entity.UserActivationToken;
 import com.example.oauth2.token.PasswordResetTokenService;
 import com.example.oauth2.token.dto.PasswordResetRequest;
 import com.example.oauth2.user.UserService;
 import com.example.oauth2.email.EmailService;
 import com.example.oauth2.token.UserActivationTokenService;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
@@ -49,12 +53,12 @@ public class UsernamePasswordService {
     public void registerUser(RegisterRequest registerRequest,
                              HttpServletRequest servletRequest,
                              HttpServletResponse servletResponse) {
-        var user = User.builder()
+        User user = User.builder()
                 .name(registerRequest.getName())
                 .email(registerRequest.getEmail())
                 .password(registerRequest.getPassword())
                 .build();
-        var authProvider = this.authProviderService.findByAuthProviderType(AuthProviderType.EMAIL);
+        AuthProvider authProvider = this.authProviderService.findByAuthProviderType(AuthProviderType.EMAIL);
         user = this.userService.registerUsernamePasswordUser(user, authProvider);
         /*
             Case: If the user's providers list is equal to 1 and that one is an EMAIL provider, it means that the user
@@ -67,7 +71,7 @@ public class UsernamePasswordService {
         if (user.getUserAuthProviders().size() == 1 && user.getUserAuthProviders().stream()
                 .anyMatch(userAuthProvider ->
                         userAuthProvider.getAuthProvider().getAuthProviderType().equals(AuthProviderType.EMAIL))) {
-            var token = this.userVerificationTokenService.createAccountActivationToken(user);
+            UserActivationToken token = this.userVerificationTokenService.createAccountActivationToken(user);
             this.emailService.sendAccountActivationEmail(user.getEmail(), user.getName(), token.getTokenValue());
         } else {
             this.passwordResetTokenService.createPasswordResetToken(new PasswordResetRequest(user.getEmail()), true);
@@ -85,15 +89,15 @@ public class UsernamePasswordService {
     private void setupSessionSpringSecurityContext(User user,
                                                    HttpServletRequest request,
                                                    HttpServletResponse response) {
-        var usernamePasswordUser = new UsernamePasswordUser(user);
-        var authentication = new UsernamePasswordAuthenticationToken(
+        UsernamePasswordUser usernamePasswordUser = new UsernamePasswordUser(user);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
                 usernamePasswordUser,
                 null,
                 usernamePasswordUser.getAuthorities()
         );
 
         //https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html#use-securitycontextholderstrategy
-        var context = this.securityContextHolderStrategy.createEmptyContext();
+        SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
         context.setAuthentication(authentication);
         this.securityContextHolderStrategy.setContext(context);
         request.getSession().setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);

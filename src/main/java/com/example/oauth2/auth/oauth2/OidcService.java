@@ -1,6 +1,7 @@
 package com.example.oauth2.auth.oauth2;
 
 import com.example.oauth2.authprovider.AuthProviderType;
+import com.example.oauth2.entity.AuthProvider;
 import com.example.oauth2.entity.User;
 import com.example.oauth2.authprovider.AuthProviderService;
 import com.example.oauth2.user.UserService;
@@ -37,10 +38,10 @@ public class OidcService extends OidcUserService {
     @Transactional
     public OidcUser loadUser(OidcUserRequest userRequest) {
         OidcUser oidcUser = super.loadUser(userRequest);
-        var authProvider = AuthProviderType.valueOf(userRequest.getClientRegistration()
+        AuthProviderType authProviderType = AuthProviderType.valueOf(userRequest.getClientRegistration()
                 .getClientName()
                 .toUpperCase());
-        var authUserProvider = this.authProviderService.findByAuthProviderType(authProvider);
+        AuthProvider authProvider = this.authProviderService.findByAuthProviderType(authProviderType);
 
         User user;
         var optionalUser = this.userService.findByEmail(oidcUser.getAttribute("email"));
@@ -53,11 +54,11 @@ public class OidcService extends OidcUserService {
             user = this.userService.registerOauth2User(oidcUser.getAttribute("name"),
                     oidcUser.getEmail(),
                     oidcUser.getAttribute("sub"),
-                    authUserProvider
+                    authProvider
             );
         } else {
             user = optionalUser.get();
-            user = this.userService.updateOauth2User(user, oidcUser, authUserProvider);
+            user = this.userService.updateOauth2User(user, oidcUser, authProvider);
         }
 
         return new SocialLoginUser(user);

@@ -2,6 +2,7 @@ package com.example.oauth2.user;
 
 import com.example.oauth2.authprovider.AuthProviderType;
 import com.example.oauth2.entity.AuthProvider;
+import com.example.oauth2.entity.UserActivationToken;
 import com.example.oauth2.entity.UserAuthProvider;
 import com.example.oauth2.entity.key.UserAuthProviderKey;
 import com.example.oauth2.exception.ServerErrorException;
@@ -60,7 +61,7 @@ public class UserService {
      */
     public User registerUsernamePasswordUser(User user, AuthProvider authProvider) {
         validateUser(user);
-        var tmp = this.userRepository.findByEmail(user.getEmail());
+        Optional<User> tmp = this.userRepository.findByEmail(user.getEmail());
 
         /*
             We are passing null, because the auth_provider_user_id in the case of the EMAIL provider will be the user's
@@ -76,14 +77,14 @@ public class UserService {
         }
 
         user = tmp.get();
-        var matched = user.getUserAuthProviders().stream()
+        boolean matched = user.getUserAuthProviders().stream()
                 .anyMatch(userAuthProvider ->
                         userAuthProvider.getAuthProvider().getAuthProviderType().equals(AuthProviderType.EMAIL));
         if (matched) {
             throw new DuplicateResourceException("Email already in use.");
         }
 
-        var userAuthProvider = createUserAuthProvider(user,
+        UserAuthProvider userAuthProvider = createUserAuthProvider(user,
                 user.getEmail(),
                 user.getName(),
                 String.valueOf(user.getId()),
@@ -98,7 +99,7 @@ public class UserService {
     }
 
     public User registerOauth2User(String name, String email, String authProviderUserId, AuthProvider authProvider) {
-        var user = User.builder()
+        User user = User.builder()
                 .name(name)
                 .email(email)
                 .password(UUID.randomUUID().toString())
@@ -121,7 +122,7 @@ public class UserService {
         we pass true
      */
     public User updateOauth2User(User user, OAuth2User oAuth2User, AuthProvider authProvider) {
-        var userAuthProviderOptional = user.getUserAuthProviders().stream()
+        Optional<UserAuthProvider> userAuthProviderOptional = user.getUserAuthProviders().stream()
                 .filter(tmp -> tmp.getAuthProvider().getAuthProviderType().equals(authProvider.getAuthProviderType()))
                 .findFirst();
 
@@ -145,7 +146,7 @@ public class UserService {
             return user;
         }
 
-        var userAuthProvider = new UserAuthProvider(
+        UserAuthProvider userAuthProvider = new UserAuthProvider(
                 new UserAuthProviderKey(user.getId(), authProvider.getId()),
                 user,
                 authProvider,
@@ -166,7 +167,7 @@ public class UserService {
         exists in the database. If the user is not found based on the id of the current authenticated user we have
         an issue with our database data. I don't know if this check should be done in the first place.
 
-        var user = this.userRepository.findById(usernamePasswordUser.user().getId()).orElseThrow(() -> {
+        User user = this.userRepository.findById(usernamePasswordUser.user().getId()).orElseThrow(() -> {
             logger.warn("User not found with id: {}", usernamePasswordUser.user().getId());
             return new ServerErrorException(SERVER_ERROR_MSG);
         });
@@ -178,9 +179,9 @@ public class UserService {
      */
     @Transactional
     void activateUserAccount(UsernamePasswordUser usernamePasswordUser) {
-        var user = this.userRepository.getReferenceById(usernamePasswordUser.user().getId());
+        User user = this.userRepository.getReferenceById(usernamePasswordUser.user().getId());
         this.userActivationTokenService.deleteTokensByUser(user);
-        var token = this.userActivationTokenService.createAccountActivationToken(user);
+        UserActivationToken token = this.userActivationTokenService.createAccountActivationToken(user);
         this.emailService.sendAccountActivationEmail(usernamePasswordUser.user().getEmail(),
                 usernamePasswordUser.user().getEmail(),
                 token.getTokenValue());
@@ -196,12 +197,12 @@ public class UserService {
      */
     @Transactional
     boolean verifyUser(String tokenValue) {
-        var tokenOptional = this.userActivationTokenService.verifyToken(tokenValue);
+        Optional<UserActivationToken> tokenOptional = this.userActivationTokenService.verifyToken(tokenValue);
         if (tokenOptional.isEmpty()) {
             return false;
         }
 
-        var token = tokenOptional.get();
+        UserActivationToken token = tokenOptional.get();
         UserAuthProvider userAuthProvider = token.getUser().getUserAuthProviders().stream()
                 .filter(provider -> provider.getAuthProvider().getAuthProviderType().equals(AuthProviderType.EMAIL))
                 .findFirst()
@@ -233,7 +234,7 @@ public class UserService {
 
         UserProfile userProfile = this.userProfileMapper.apply(user);
         if (authentication.getPrincipal() instanceof UsernamePasswordUser) {
-            var enabled = user.getUserAuthProviders().stream()
+            boolean enabled = user.getUserAuthProviders().stream()
                     .filter(userAuthProvider ->
                             userAuthProvider.getAuthProvider().getAuthProviderType().equals(AuthProviderType.EMAIL))
                     .map(UserAuthProvider::isEnabled)
@@ -303,7 +304,7 @@ public class UserService {
             authProviderUserId = user.getId().toString();
         }
 
-        var userAuthProvider = createUserAuthProvider(user,
+        UserAuthProvider userAuthProvider = createUserAuthProvider(user,
                 user.getEmail(),
                 user.getName(),
                 authProviderUserId,

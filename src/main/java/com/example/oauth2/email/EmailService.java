@@ -6,9 +6,10 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import com.example.oauth2.exception.ServerErrorException;
-
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+
+import com.example.oauth2.exception.ServerErrorException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,32 +23,32 @@ public class EmailService {
 
     @Async
     public void sendAccountActivationEmail(String recipient, String username, String token) {
-        var activationLink = String.format("http://localhost:8080/api/v1/user/verify?token=%s", token);
-        var context = this.thymeleafService.setAccountVerificationEmailContext(activationLink, username);
+        String activationLink = String.format("http://localhost:8080/api/v1/user/verify?token=%s", token);
+        String context = this.thymeleafService.setAccountVerificationEmailContext(activationLink, username);
 
         sendEmail(recipient, "Activate your account", context);
     }
 
     @Async
     public void sendAccountRegistrationLinkingEmail(String recipient, String username, String token) {
-        var tokenLink = "http://localhost:8080/password_reset/confirm?token=" + token;
-        var passwordResetLink = "http://localhost:8080/password_reset";
-        var context = this.thymeleafService.setAccountRegistrationLinkingEmailContext(username, tokenLink, passwordResetLink);
+        String tokenLink = "http://localhost:8080/password_reset/confirm?token=" + token;
+        String passwordResetLink = "http://localhost:8080/password_reset";
+        String context = this.thymeleafService.setAccountRegistrationLinkingEmailContext(username, tokenLink, passwordResetLink);
 
         sendEmail(recipient, "Link your account", context);
     }
 
     @Async
     public void sendPasswordResetEmail(String recipient, String token) {
-        var tokenLink = "http://localhost:8080/password_reset/confirm?token=" + token;
-        var passwordResetLink = "http://localhost:8080/password_reset";
-        var context = thymeleafService.setPasswordResetEmailContext(tokenLink, passwordResetLink);
+        String tokenLink = "http://localhost:8080/password_reset/confirm?token=" + token;
+        String passwordResetLink = "http://localhost:8080/password_reset";
+        String context = thymeleafService.setPasswordResetEmailContext(tokenLink, passwordResetLink);
 
         sendEmail(recipient, "Reset your Test password", context);
     }
 
     private void sendEmail(String recipient, String subject, String emailContext) {
-        var mimeMessage = this.mailSender.createMimeMessage();
+        MimeMessage mimeMessage = this.mailSender.createMimeMessage();
         MimeMessageHelper helper;
 
         try {

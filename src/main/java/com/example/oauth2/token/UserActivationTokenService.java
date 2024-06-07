@@ -29,9 +29,9 @@ public class UserActivationTokenService {
      */
     @Transactional
     public UserActivationToken createAccountActivationToken(User user) {
-        var token = TokenUtils.generateToken();
-        var expiryTime = Instant.now().plus(1, ChronoUnit.DAYS);
-        var userActivationToken = new UserActivationToken(user, token, expiryTime);
+        String token = TokenUtils.generateToken();
+        Instant expiryTime = Instant.now().plus(1, ChronoUnit.DAYS);
+        UserActivationToken userActivationToken = new UserActivationToken(user, token, expiryTime);
         this.userActivationTokenRepository.deleteTokensByUser(user);
 
         return this.userActivationTokenRepository.save(userActivationToken);
@@ -51,14 +51,14 @@ public class UserActivationTokenService {
             return Optional.empty();
         }
 
-        var tokenOptional = this.userActivationTokenRepository.findByTokenValue(tokenValue);
+        Optional<UserActivationToken> tokenOptional = this.userActivationTokenRepository.findByTokenValue(tokenValue);
         if(tokenOptional.isEmpty()) {
             logger.info("User activation token not found for token value: {}", tokenValue);
 
             return tokenOptional;
         }
 
-        var userActivationToken = tokenOptional.get();
+        UserActivationToken userActivationToken = tokenOptional.get();
         if(userActivationToken.getExpiryDate().isBefore(Instant.now())) {
             logger.info("User activation link expired for user with id: {}", userActivationToken.getUser().getId());
             this.userActivationTokenRepository.delete(userActivationToken);
