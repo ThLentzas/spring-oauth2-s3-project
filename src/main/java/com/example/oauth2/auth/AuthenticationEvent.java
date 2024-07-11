@@ -18,6 +18,7 @@ public class AuthenticationEvent {
 
     /*
         When the user is authenticated via the form login we have to update the lastSignedInAt property of that user
+        https://docs.spring.io/spring-security/reference/servlet/authentication/events.html
      */
     @EventListener
     public void onSuccess(AuthenticationSuccessEvent success) {

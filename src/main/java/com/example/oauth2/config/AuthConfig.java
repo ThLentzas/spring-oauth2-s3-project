@@ -33,7 +33,7 @@ class AuthConfig {
                 .orElseThrow(() -> new UsernameNotFoundException("Username or password is incorrect"));
     }
 
-
+    //https://docs.spring.io/spring-security/reference/servlet/authentication/events.html
     @Bean
     public AuthenticationEventPublisher authenticationEventPublisher
             (ApplicationEventPublisher applicationEventPublisher) {
