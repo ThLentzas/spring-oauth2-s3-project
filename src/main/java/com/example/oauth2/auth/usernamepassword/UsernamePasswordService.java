@@ -96,7 +96,8 @@ public class UsernamePasswordService {
                 usernamePasswordUser.getAuthorities()
         );
 
-        //https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html#use-securitycontextholderstrategy
+        // https://docs.spring.io/spring-security/reference/servlet/authentication/session-management.html#use-securitycontextholderstrategy
+        // Explicit saving: https://docs.spring.io/spring-security/reference/6.0/migration/servlet/session-management.html#_require_explicit_saving_of_securitycontextrepository
         SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
         context.setAuthentication(authentication);
         this.securityContextHolderStrategy.setContext(context);
