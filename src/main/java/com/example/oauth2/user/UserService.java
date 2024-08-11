@@ -1,18 +1,22 @@
 package com.example.oauth2.user;
 
+import com.example.oauth2.auth.oauth2.SocialLoginUser;
 import com.example.oauth2.authprovider.AuthProviderType;
 import com.example.oauth2.entity.AuthProvider;
 import com.example.oauth2.entity.UserActivationToken;
 import com.example.oauth2.entity.UserAuthProvider;
 import com.example.oauth2.entity.key.UserAuthProviderKey;
 import com.example.oauth2.exception.ServerErrorException;
+import com.example.oauth2.exception.UnsupportedFileException;
+import com.example.oauth2.s3.S3Service;
 import com.example.oauth2.token.UserActivationTokenService;
 import com.example.oauth2.entity.User;
 import com.example.oauth2.exception.DuplicateResourceException;
 import com.example.oauth2.auth.usernamepassword.UsernamePasswordUser;
 import com.example.oauth2.email.EmailService;
+import com.example.oauth2.user.dto.UserProfileUpdateRequest;
 import com.example.oauth2.user.dto.UserProfile;
-import com.example.oauth2.user.dto.UserProfileMapper;
+import com.example.oauth2.utils.FileUtils;
 import com.example.oauth2.utils.PasswordUtils;
 
 import org.slf4j.Logger;
@@ -29,10 +33,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import lombok.RequiredArgsConstructor;
-
 
 @Service
 @RequiredArgsConstructor
@@ -42,8 +46,10 @@ public class UserService {
     private final UserActivationTokenService userActivationTokenService;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final S3Service s3Service;
     private final UserProfileMapper userProfileMapper = new UserProfileMapper();
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    private static final String DEFAULT_PROFILE_IMAGE_KEY = "DEFAULT_PROFILE_IMAGE.png";
 
     /*
         We set both the userAuthProvider to the user and the user to the userAuthProvider because the relationship is
@@ -68,6 +74,7 @@ public class UserService {
             id(PK), but the user is not persisted yet.
          */
         if (tmp.isEmpty()) {
+            user.setProfileImageKey(DEFAULT_PROFILE_IMAGE_KEY);
             user.setPassword(this.passwordEncoder.encode(user.getPassword()));
             user.setRole(Role.ROLE_USER);
             user.setLastSignedInAt(Instant.now());
@@ -100,6 +107,7 @@ public class UserService {
 
     public User registerOauth2User(String name, String email, String authProviderUserId, AuthProvider authProvider) {
         User user = User.builder()
+                .profileImageKey(DEFAULT_PROFILE_IMAGE_KEY)
                 .name(name)
                 .email(email)
                 .password(UUID.randomUUID().toString())
@@ -223,16 +231,18 @@ public class UserService {
     }
 
     /*
-        If the principal of authentication object is of type UsernamePassword, we have to know if that user has or not
-        activated their profile to render the correct buttons in the user profile.
+        If the principal of authentication object is of type UsernamePassword, we have to know if that user activated
+        or not their profile to render the correct buttons in the user profile.
      */
-    public UserProfile findByIdFetchingSocialAccounts(Long id, Authentication authentication) {
+    UserProfile findByIdFetchingSocialAccounts(Long id, Authentication authentication) {
         User user = this.userRepository.findByIdFetchingSocialAccounts(id).orElseThrow(() -> {
             logger.info("User record was not found for the id of the current authenticated user: {}", id);
             return new ServerErrorException("The server encountered an internal error and was unable to complete your request. Please try again later");
         });
-
         UserProfile userProfile = this.userProfileMapper.apply(user);
+        String presignedImageUrl = this.s3Service.createPreSignedGetUrl(user.getProfileImageKey());
+        userProfile.setProfileImageUrl(presignedImageUrl);
+
         if (authentication.getPrincipal() instanceof UsernamePasswordUser) {
             boolean enabled = user.getUserAuthProviders().stream()
                     .filter(userAuthProvider ->
@@ -248,6 +258,37 @@ public class UserService {
         userProfile.setEnabled(true);
 
         return userProfile;
+    }
+
+    @Transactional
+    void updateUserProfile(Authentication authentication, UserProfileUpdateRequest updateRequest) {
+        if (updateRequest.getName() == null && updateRequest.getProfileImage() == null) {
+            throw new IllegalArgumentException("You must provide a name or a profile image to update your profile");
+        }
+
+        Long userId = authentication.getPrincipal() instanceof UsernamePasswordUser usernamePasswordUser
+                ? usernamePasswordUser.user().getId()
+                : ((SocialLoginUser) authentication.getPrincipal()).user().getId();
+        User user = this.userRepository.findById(userId).orElseThrow(() -> new ServerErrorException(""));
+
+        if (StringUtils.hasText(updateRequest.getName())) {
+            user.setName(updateRequest.getName());
+        }
+        if (!FileUtils.isFileSupported(updateRequest.getProfileImage())) {
+            throw new UnsupportedFileException("The provided file is not supported. Make sure your file is either a"
+                    + " png or a jpeg one");
+        }
+
+        // If the user does not have the default image, delete it
+        if (!DEFAULT_PROFILE_IMAGE_KEY.equals(user.getProfileImageKey())) {
+            s3Service.delete(user.getProfileImageKey());
+        }
+
+        String profileImageKey = String.format("%s%s", UUID.randomUUID(), FileUtils.getFileExtension(updateRequest.getProfileImage()));
+        this.s3Service.upload(profileImageKey, updateRequest.getProfileImage());
+        user.setProfileImageKey(profileImageKey);
+
+        save(user);
     }
 
     public void updateLastSignedInAt(User user) {

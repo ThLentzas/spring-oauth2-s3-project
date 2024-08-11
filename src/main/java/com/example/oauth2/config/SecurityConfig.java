@@ -27,13 +27,13 @@ public class SecurityConfig {
                     authorize.requestMatchers(HttpMethod.GET, "/register").permitAll();
                     authorize.requestMatchers(HttpMethod.GET, "/account_activation").permitAll();
                     authorize.requestMatchers(HttpMethod.GET, "/css/**").permitAll();
-                    authorize.requestMatchers(HttpMethod.GET, "/png/**").permitAll();
                     authorize.requestMatchers(HttpMethod.GET, "/password_reset/**").permitAll();
                     //It's permitAll() because its the endpoint that will be called from the user clicking the link on their email
                     authorize.requestMatchers(HttpMethod.GET, "/api/v1/user/verify/**").permitAll();
                     authorize.requestMatchers("/api/v1/auth/**").permitAll();
                     authorize.anyRequest().authenticated();
                 })
+                // Explicit saving: https://docs.spring.io/spring-security/reference/6.0/migration/servlet/session-management.html#_require_explicit_saving_of_securitycontextrepository
                 .securityContext(securityContext -> securityContext.requireExplicitSave(true))
                 .csrf(csrf -> {
                     csrf.csrfTokenRepository(new HttpSessionCsrfTokenRepository());
@@ -41,7 +41,12 @@ public class SecurityConfig {
                 })
 
                 //https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/form.html
-                .formLogin(formLoginConfigurer -> formLoginConfigurer.loginPage("/login").permitAll())
+                .formLogin(formLoginConfigurer -> {
+                    formLoginConfigurer.loginPage("/login").permitAll();
+                    // successForwardUrl() makes a POST request to the argument passed, we want to navigate the user to
+                    // "/profile" with a GET request
+                    formLoginConfigurer.defaultSuccessUrl("/profile");
+                })
                 //it uses Open ID Connect under the hood for Google and oauth2 for GitHub
                 .oauth2Login(oAuth2LoginConfigurer -> {
                     oAuth2LoginConfigurer.loginPage("/login");

@@ -1,13 +1,17 @@
 package com.example.oauth2.user;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.oauth2.auth.usernamepassword.UsernamePasswordUser;
+import com.example.oauth2.user.dto.UserProfileUpdateRequest;
 
 import lombok.RequiredArgsConstructor;
 
@@ -41,9 +45,18 @@ class UserController {
        return "redirect:/account_activation";
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'VERIFIED')")
+    @PreAuthorize("hasAnyRole('VERIFIED')")
     @GetMapping("/account/link")
     String linkAccount() {
         return "redirect:/login";
+    }
+
+    @PreAuthorize("hasRole('VERIFIED')")
+    @PostMapping(value = "/profile/edit", consumes = "multipart/form-data")
+    String updateProfile(@ModelAttribute("userProfileUpdateRequest") UserProfileUpdateRequest userProfileUpdateRequest,
+                         Authentication authentication) {
+        this.userService.updateUserProfile(authentication, userProfileUpdateRequest);
+
+        return "redirect:/profile";
     }
 }

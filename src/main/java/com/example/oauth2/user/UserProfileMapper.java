@@ -1,10 +1,10 @@
-package com.example.oauth2.user.dto;
+package com.example.oauth2.user;
 
 import com.example.oauth2.entity.User;
 import com.example.oauth2.socialaccount.dto.SocialAccountDTOMapper;
+import com.example.oauth2.user.dto.UserProfile;
 
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class UserProfileMapper implements Function<User, UserProfile> {
     private final SocialAccountDTOMapper socialAccountDTOMapper = new SocialAccountDTOMapper();

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Edit Profile</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <form th:action="@{/api/v1/user/profile/edit}" method="post" th:object="${userProfileUpdateRequest}" enctype="multipart/form-data">
+                <h2 class="form-signin-heading">Edit Profile</h2>
+                <p>
+                    <label for="name" class="sr-only">Name</label>
+                    <input type="text" id="name" name="name" th:field="*{name}" class="form-control" placeholder="Name" required>
+                </p>
+                <p>
+                    <label for="profileImage" class="sr-only">Profile Image</label>
+                    <input type="file" id="profileImage" name="profileImage" class="form-control-file" accept=".jpeg, .jpg, .png">
+                </p>
+                <div class="form-group d-flex justify-content-between align-items-center">
+                    <a th:href="@{/profile}" class="link">Cancel</a>
+                    <button class="btn btn-primary" type="submit">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

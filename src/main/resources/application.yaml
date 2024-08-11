@@ -38,6 +38,9 @@ spring:
           auth: true
           starttls:
             enable: true
+  servlet:
+    multipart:
+      max-file-size: 128KB
   jackson:
     mapper:
       accept-case-insensitive-enums: true
@@ -61,5 +64,10 @@ logging:
         orm:
           jpa:
             JpaTransactionManager: TRACE
-
+aws:
+  access:
+    key: ${AWS.ACCESS.KEY}
+    secret: ${AWS.ACCESS.SECRET}
+  s3:
+    bucket: ${AWS.S3.BUCKET}
 

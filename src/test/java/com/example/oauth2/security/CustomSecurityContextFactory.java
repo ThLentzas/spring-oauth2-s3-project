@@ -31,23 +31,23 @@ public class CustomSecurityContextFactory implements WithSecurityContextFactory<
      */
     @Override
     public SecurityContext createSecurityContext(WithMockCustomUser annotation) {
-        var testSecurityContext = SecurityContextHolder.createEmptyContext();
+        SecurityContext testSecurityContext = SecurityContextHolder.createEmptyContext();
         Authentication authentication;
-        var user = new User();
+        User user = new User();
         user.setId(1L);
         user.setName(annotation.username());
         user.setPassword(annotation.password());
         user.setRole(Role.valueOf("ROLE_" + annotation.roles()[0]));
 
         if(annotation.socialLogin()) {
-            var principal = new SocialLoginUser(user);
+            SocialLoginUser principal = new SocialLoginUser(user);
             authentication = new OAuth2AuthenticationToken(
                     principal,
                     principal.getAuthorities(),
                     UUID.randomUUID().toString()
             );
         } else {
-            var principal = new UsernamePasswordUser(user);
+            UsernamePasswordUser principal = new UsernamePasswordUser(user);
             authentication = new UsernamePasswordAuthenticationToken(
                     principal,
                     null,

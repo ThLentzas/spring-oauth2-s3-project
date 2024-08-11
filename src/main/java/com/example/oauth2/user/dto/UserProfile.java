@@ -11,6 +11,7 @@ import com.example.oauth2.socialaccount.dto.SocialAccountDTO;
 @Setter
 public class UserProfile {
     private String name;
+    private String profileImageUrl;
     private List<SocialAccountDTO> socialAccounts;
     private boolean enabled;
 

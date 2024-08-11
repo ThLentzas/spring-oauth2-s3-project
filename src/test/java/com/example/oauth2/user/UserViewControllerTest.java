@@ -39,7 +39,7 @@ class UserViewControllerTest {
     @Test
     @WithMockCustomUser(roles = "USER", socialLogin = false)
     void shouldReturnUserProfileForNonVerifiedUser() throws Exception {
-        var userProfile = new UserProfile();
+        UserProfile userProfile = new UserProfile();
         userProfile.setName("user");
         userProfile.setSocialAccounts(Collections.emptyList());
         userProfile.setEnabled(false);
@@ -64,7 +64,7 @@ class UserViewControllerTest {
     @Test
     @WithMockCustomUser(roles = "VERIFIED", socialLogin = false)
     void shouldReturnUserProfileForVerifiedUser() throws Exception {
-        var userProfile = new UserProfile();
+        UserProfile userProfile = new UserProfile();
         userProfile.setName("user");
         userProfile.setSocialAccounts(List.of(
                 new SocialAccountDTO(1L, "in/user"),

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import com.example.oauth2.auth.oauth2.SocialLoginUser;
 import com.example.oauth2.auth.usernamepassword.UsernamePasswordUser;
 import com.example.oauth2.user.dto.UserProfile;
+import com.example.oauth2.user.dto.UserProfileUpdateRequest;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,5 +28,13 @@ class UserViewController {
         model.addAttribute("userProfile", userProfile);
 
         return "profile";
+    }
+
+    @PreAuthorize("hasRole('VERIFIED')")
+    @GetMapping("/edit-profile")
+    String editProfile(Model model) {
+        model.addAttribute("userProfileUpdateRequest", new UserProfileUpdateRequest());
+
+        return "edit-profile";
     }
 }

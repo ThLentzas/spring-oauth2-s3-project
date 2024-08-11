@@ -49,6 +49,8 @@ public class User implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false)
+    private String profileImageKey;
+    @Column(nullable = false)
     private String email;
     @Column(nullable = false)
     private String name;

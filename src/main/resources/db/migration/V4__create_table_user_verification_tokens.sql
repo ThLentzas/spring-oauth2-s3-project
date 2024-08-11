@@ -1,5 +1,3 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 CREATE TABLE IF NOT EXISTS user_activation_tokens (
     id uuid DEFAULT uuid_generate_v4(),
     user_id INTEGER NOT NULL,

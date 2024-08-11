@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Profile Card UI Design</title>
+    <title>Profile Card</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
     <link href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" rel="stylesheet">
@@ -12,11 +12,11 @@
 <body>
 <div class="container-fluid d-flex justify-content-start align-items-start full-height" style="padding: 0">
     <div class="card shadow adjusted-position" style="width: 20rem; border-radius: 1.5rem;">
-        <a style="position: absolute; top: 10px; right: 10px; cursor: pointer;">
+        <a th:href="@{/edit-profile}" style="position: absolute; top: 10px; right: 10px; cursor: pointer;">
             <i id="editIcon" class="fas fa-user-edit text-white"></i>
         </a>
         <div class="bg-primary card-top"></div>
-        <img th:src="@{/images/user.png}"
+        <img th:src="${userProfile.profileImageUrl}"
              class="rounded-circle profile-image border border-white" alt="Profile Image">
         <div class="card-body text-center" style="padding-top: 50px;">
             <h5 class="card-title" th:text="${userProfile.name}">John Doe</h5>
