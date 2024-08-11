@@ -19,5 +19,6 @@ A User Management System for handling authentication and authorization. It suppo
 * PostgreSQL
 * Flyway
 * Thymeleaf
+* AWS S3
 
 ![User Management System](https://i.imgur.com/ByUpXdP.png)
